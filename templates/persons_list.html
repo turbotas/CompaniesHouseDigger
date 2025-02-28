@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>Persons</h2>
+  <a href="{{ url_for('persons_new') }}" class="btn btn-primary">Add New Person</a>
+</div>
+
+{% if persons|length == 0 %}
+  <div class="alert alert-warning">No persons found.</div>
+{% else %}
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Full Name</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for person in persons %}
+      <tr>
+        <td>{{ person.id }}</td>
+        <td>{{ person.full_name }}</td>
+        <td>
+          <a href="{{ url_for('persons_edit', person_id=person.id) }}"
+             class="btn btn-sm btn-secondary">Edit</a>
+          <form action="{{ url_for('persons_delete', person_id=person.id) }}"
+                method="POST"
+                style="display:inline-block;">
+            <button
+              class="btn btn-sm btn-danger"
+              type="submit"
+              onclick="return confirm('Delete this person?');"
+            >
+              Delete
+            </button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endif %}
+{% endblock %}
