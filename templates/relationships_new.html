@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Add a New Relationship</h2>
+
+<form method="POST" action="{{ url_for('new_relationship') }}">
+  <div class="mb-3">
+    <label for="company_id" class="form-label">Select Company</label>
+    <select class="form-select" name="company_id" id="company_id" required>
+      <option value="">-- Choose a Company --</option>
+      {% for c in companies %}
+      <option value="{{ c.id }}">{{ c.name }} ({{ c.company_number }})</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="mb-3">
+    <label for="person_id" class="form-label">Select Person</label>
+    <select class="form-select" name="person_id" id="person_id" required>
+      <option value="">-- Choose a Person --</option>
+      {% for p in persons %}
+      <option value="{{ p.id }}">{{ p.full_name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <button type="submit" class="btn btn-success">Create Relationship</button>
+  <a href="{{ url_for('show_relationships') }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

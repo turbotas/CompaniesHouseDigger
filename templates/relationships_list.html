@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>Company-Person Relationships</h2>
+  <a href="{{ url_for('new_relationship') }}" class="btn btn-primary">Add New Relationship</a>
+</div>
+
+{% if pairs|length == 0 %}
+  <div class="alert alert-warning">No relationships found.</div>
+{% else %}
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Company</th>
+        <th>Person</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for (company, person) in pairs %}
+      <tr>
+        <td>{{ company.name }} ({{ company.company_number }})</td>
+        <td>{{ person.full_name }}</td>
+        <td>
+          <!-- Remove relationship form -->
+          <form
+            action="{{ url_for('remove_relationship') }}"
+            method="POST"
+            style="display:inline-block;"
+          >
+            <input type="hidden" name="company_id" value="{{ company.id }}">
+            <input type="hidden" name="person_id" value="{{ person.id }}">
+            <button
+              type="submit"
+              class="btn btn-sm btn-danger"
+              onclick="return confirm('Remove this relationship?');"
+            >
+              Remove
+            </button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endif %}
+{% endblock %}
