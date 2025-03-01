@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Dig Company (from Companies House)</h2>
+
+<form method="POST" action="{{ url_for('company_bp.dig_company') }}">
+  <div class="mb-3">
+    <label for="company_number" class="form-label">Company Number</label>
+    <input type="text" class="form-control" name="company_number" id="company_number" required>
+  </div>
+
+  <button type="submit" class="btn btn-primary">Fetch & Add</button>
+  <a href="{{ url_for('company_bp.companies_list') }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}
