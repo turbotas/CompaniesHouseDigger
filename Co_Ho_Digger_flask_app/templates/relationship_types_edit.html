@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <h2>Edit Relationship Type #{{ rel_type.id }}</h2>
-<form method="POST" action="{{ url_for('relationship_types_edit', type_id=rel_type.id) }}">
+<form method="POST" action="{{ url_for('reltype_bp.relationship_types_edit', type_id=rel_type.id) }}">
   <div class="mb-3">
     <label for="name" class="form-label">Name</label>
     <input type="text" class="form-control"
@@ -14,6 +14,6 @@
     <textarea class="form-control" name="description" id="description">{{ rel_type.description }}</textarea>
   </div>
   <button type="submit" class="btn btn-primary">Update</button>
-  <a href="{{ url_for('relationship_types_list') }}" class="btn btn-secondary">Cancel</a>
+  <a href="{{ url_for('reltype_bp.relationship_types_list') }}" class="btn btn-secondary">Cancel</a>
 </form>
 {% endblock %}

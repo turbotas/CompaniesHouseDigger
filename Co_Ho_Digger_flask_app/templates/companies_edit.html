@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <h2>Edit Company #{{ company.id }}</h2>
-<form method="POST" action="{{ url_for('companies_edit', company_id=company.id) }}">
+<form method="POST" action="{{ url_for('company_bp.companies_edit', company_id=company.id) }}">
   <div class="mb-3">
     <label for="name" class="form-label">Company Name</label>
     <input
@@ -25,6 +25,6 @@
     >
   </div>
   <button type="submit" class="btn btn-primary">Update</button>
-  <a href="{{ url_for('companies_list') }}" class="btn btn-secondary">Cancel</a>
+  <a href="{{ url_for('company_bp.companies_list') }}" class="btn btn-secondary">Cancel</a>
 </form>
 {% endblock %}

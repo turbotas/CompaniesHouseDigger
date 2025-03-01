@@ -2,7 +2,7 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h2>All Relationships</h2>
-  <a href="{{ url_for('relationships_new') }}" class="btn btn-primary">Add New Relationship</a>
+  <a href="{{ url_for('relationship_bp.relationships_new') }}" class="btn btn-primary">Add New Relationship</a>
 </div>
 
 {% if relationships|length == 0 %}
@@ -25,7 +25,7 @@
         <td>{{ r.target_display }}</td>
         <td>
           <!-- We only have delete in this example -->
-          <form action="{{ url_for('relationships_delete', rel_id=r.id) }}"
+          <form action="{{ url_for('relationship_bp.relationships_delete', rel_id=r.id) }}"
                 method="POST"
                 style="display:inline-block;">
             <button type="submit"

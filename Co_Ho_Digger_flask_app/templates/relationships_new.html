@@ -2,7 +2,7 @@
 {% block content %}
 <h2>Create a New Relationship</h2>
 
-<form method="POST" action="{{ url_for('relationships_new') }}">
+<form method="POST" action="{{ url_for('relationship_bp.relationships_new') }}">
 
   <!-- Relationship Type -->
   <div class="mb-3">
@@ -102,6 +102,6 @@
   </div>
 
   <button type="submit" class="btn btn-success">Create Relationship</button>
-  <a href="{{ url_for('relationships_list') }}" class="btn btn-secondary">Cancel</a>
+  <a href="{{ url_for('relationship_bp.relationships_list') }}" class="btn btn-secondary">Cancel</a>
 </form>
 {% endblock %}
