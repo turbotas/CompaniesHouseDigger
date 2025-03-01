@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Edit Relationship Type #{{ rel_type.id }}</h2>
+<form method="POST" action="{{ url_for('relationship_types_edit', type_id=rel_type.id) }}">
+  <div class="mb-3">
+    <label for="name" class="form-label">Name</label>
+    <input type="text" class="form-control"
+           name="name" id="name"
+           value="{{ rel_type.name }}"
+           required>
+  </div>
+  <div class="mb-3">
+    <label for="description" class="form-label">Description (optional)</label>
+    <textarea class="form-control" name="description" id="description">{{ rel_type.description }}</textarea>
+  </div>
+  <button type="submit" class="btn btn-primary">Update</button>
+  <a href="{{ url_for('relationship_types_list') }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

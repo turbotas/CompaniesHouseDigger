@@ -1,11 +1,45 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Add a New Relationship</h2>
+<h2>Create a New Relationship</h2>
 
-<form method="POST" action="{{ url_for('new_relationship') }}">
+<form method="POST" action="{{ url_for('relationships_new') }}">
+
+  <!-- Relationship Type -->
   <div class="mb-3">
-    <label for="company_id" class="form-label">Select Company</label>
-    <select class="form-select" name="company_id" id="company_id" required>
+    <label for="relationship_type_id" class="form-label">Relationship Type</label>
+    <select class="form-select" name="relationship_type_id" id="relationship_type_id" required>
+      <option value="">-- Choose a Relationship Type --</option>
+      {% for rt in relationship_types %}
+      <option value="{{ rt.id }}">{{ rt.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <!-- Source Type -->
+  <div class="mb-3">
+    <label class="form-label">Source Type</label><br>
+    <div class="form-check form-check-inline">
+      <input class="form-check-input"
+             type="radio"
+             name="source_type"
+             id="source_type_company"
+             value="company" checked>
+      <label class="form-check-label" for="source_type_company">Company</label>
+    </div>
+    <div class="form-check form-check-inline">
+      <input class="form-check-input"
+             type="radio"
+             name="source_type"
+             id="source_type_person"
+             value="person">
+      <label class="form-check-label" for="source_type_person">Person</label>
+    </div>
+  </div>
+
+  <!-- Source as Company dropdown -->
+  <div class="mb-3">
+    <label for="source_id_company" class="form-label">If Source is Company, select:</label>
+    <select class="form-select" name="source_id_company" id="source_id_company">
       <option value="">-- Choose a Company --</option>
       {% for c in companies %}
       <option value="{{ c.id }}">{{ c.name }} ({{ c.company_number }})</option>
@@ -13,9 +47,53 @@
     </select>
   </div>
 
+  <!-- Source as Person dropdown -->
   <div class="mb-3">
-    <label for="person_id" class="form-label">Select Person</label>
-    <select class="form-select" name="person_id" id="person_id" required>
+    <label for="source_id_person" class="form-label">If Source is Person, select:</label>
+    <select class="form-select" name="source_id_person" id="source_id_person">
+      <option value="">-- Choose a Person --</option>
+      {% for p in persons %}
+      <option value="{{ p.id }}">{{ p.full_name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <!-- Target Type -->
+  <div class="mb-3">
+    <label class="form-label">Target Type</label><br>
+    <div class="form-check form-check-inline">
+      <input class="form-check-input"
+             type="radio"
+             name="target_type"
+             id="target_type_company"
+             value="company" checked>
+      <label class="form-check-label" for="target_type_company">Company</label>
+    </div>
+    <div class="form-check form-check-inline">
+      <input class="form-check-input"
+             type="radio"
+             name="target_type"
+             id="target_type_person"
+             value="person">
+      <label class="form-check-label" for="target_type_person">Person</label>
+    </div>
+  </div>
+
+  <!-- Target as Company dropdown -->
+  <div class="mb-3">
+    <label for="target_id_company" class="form-label">If Target is Company, select:</label>
+    <select class="form-select" name="target_id_company" id="target_id_company">
+      <option value="">-- Choose a Company --</option>
+      {% for c in companies %}
+      <option value="{{ c.id }}">{{ c.name }} ({{ c.company_number }})</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <!-- Target as Person dropdown -->
+  <div class="mb-3">
+    <label for="target_id_person" class="form-label">If Target is Person, select:</label>
+    <select class="form-select" name="target_id_person" id="target_id_person">
       <option value="">-- Choose a Person --</option>
       {% for p in persons %}
       <option value="{{ p.id }}">{{ p.full_name }}</option>
@@ -24,6 +102,6 @@
   </div>
 
   <button type="submit" class="btn btn-success">Create Relationship</button>
-  <a href="{{ url_for('show_relationships') }}" class="btn btn-secondary">Cancel</a>
+  <a href="{{ url_for('relationships_list') }}" class="btn btn-secondary">Cancel</a>
 </form>
 {% endblock %}
