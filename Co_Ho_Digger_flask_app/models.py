@@ -8,7 +8,7 @@ class Company(db.Model):
     __tablename__ = "company"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
-    company_number = db.Column(db.String(50), nullable=False)
+    company_number = db.Column(db.String(50), unique=True, nullable=False)
 
 class Person(db.Model):
     __tablename__ = "person"

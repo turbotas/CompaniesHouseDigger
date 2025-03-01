@@ -1,9 +1,10 @@
 # my_flask_app/company_routes.py
 
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import flash, Blueprint, render_template, request, redirect, url_for
 from .models import db, Company
 import requests
 import os
+from sqlalchemy.exc import IntegrityError
 
 
 company_bp = Blueprint("company_bp", __name__, template_folder="templates")
@@ -19,11 +20,17 @@ def companies_new():
         name = request.form.get("name")
         company_number = request.form.get("company_number")
         if not name or not company_number:
-            return "Name and Company Number are required!", 400
+            flash("Name and Company Number are required!", "warning")
+            return render_template("companies_new.html")
 
         new_company = Company(name=name, company_number=company_number)
         db.session.add(new_company)
-        db.session.commit()
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            flash("A company with that number already exists.", "danger")
+            return render_template("companies_new.html", name=name, company_number=company_number)
         return redirect(url_for("company_bp.companies_list"))
 
     return render_template("companies_new.html")
@@ -44,53 +51,59 @@ def companies_delete(company_id):
     db.session.delete(company)
     db.session.commit()
     return redirect(url_for("company_bp.companies_list"))
-    
+
 @company_bp.route("/companies/dig", methods=["GET", "POST"])
 def dig_company():
     """
-    1) GET => show a form where the user enters a company number
-    2) POST => call Companies House API, create local Company record
+    Show a form to enter a company number.
+    On POST, call the Companies House API and then either update the existing
+    Company record (if the company_number already exists) or create a new one.
     """
     if request.method == "POST":
         company_number = request.form.get("company_number", "").strip()
         if not company_number:
-            return "Company number is required!", 400
+            flash("Company number is required.", "warning")
+            return render_template("dig_company_form.html")
 
-        # Get the API key from environment
         api_key = os.getenv("COMPANIES_HOUSE_API_KEY")
         if not api_key:
-            return "Companies House API key not configured!", 500
+            flash("Companies House API key is not configured.", "danger")
+            return render_template("dig_company_form.html")
 
-        # Build the Companies House API URL
         url = f"https://api.company-information.service.gov.uk/company/{company_number}"
-
         try:
-            # Basic auth with the API key (username=api_key, password="")
-            response = requests.get(url, auth=(api_key, ''))
-            response.raise_for_status()  # raise an exception if 4xx/5xx
-
+            response = requests.get(url, auth=(api_key, ""))
+            response.raise_for_status()
         except requests.exceptions.HTTPError as err:
-            return f"Error calling Companies House: {err}", 400
+            flash(f"Error calling Companies House: {err}", "danger")
+            return render_template("dig_company_form.html")
         except requests.exceptions.RequestException as err:
-            return f"Network or other error: {err}", 500
+            flash(f"Network error: {err}", "danger")
+            return render_template("dig_company_form.html")
 
-        # Parse the JSON
         data = response.json()
-        # The "company_name" field in the CH data might be "company_name" or "company_name" 
-        # (depending on the structure). Usually it's "company_name".
         ch_company_name = data.get("company_name")
         if not ch_company_name:
-            return "No 'company_name' found in API response.", 400
+            flash("No company name found in API response.", "danger")
+            return render_template("dig_company_form.html")
 
-        # Save to our DB
-        new_company = Company(
-            name=ch_company_name,
-            company_number=company_number
-        )
-        db.session.add(new_company)
-        db.session.commit()
+        # Upsert logic: check if a record with the same company_number exists.
+        existing = Company.query.filter_by(company_number=company_number).first()
+        if existing:
+            existing.name = ch_company_name  # Update the existing record.
+            flash("Existing company updated with latest data.", "info")
+        else:
+            new_company = Company(name=ch_company_name, company_number=company_number)
+            db.session.add(new_company)
+            flash("New company added.", "success")
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            flash("A company with that number already exists.", "danger")
+            return render_template("dig_company_form.html")
 
         return redirect(url_for("company_bp.companies_list"))
 
-    # If GET, just render the form
-    return render_template("dig_company_form.html")  
+    # GET: Show the form
+    return render_template("dig_company_form.html")

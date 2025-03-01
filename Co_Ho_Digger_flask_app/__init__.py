@@ -2,6 +2,7 @@
 
 from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate 
 from .models import db
 from .company_routes import company_bp
 from .person_routes import person_bp
@@ -21,6 +22,9 @@ def create_app():
 
     # Initialize the db with this app
     db.init_app(app)
+    
+    # Initialize Migrate with the app and db
+    migrate = Migrate(app, db)
 
     # Register Blueprints
     app.register_blueprint(company_bp)
