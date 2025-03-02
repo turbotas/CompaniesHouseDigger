@@ -10,6 +10,18 @@
     <label for="company_number" class="form-label">Company Number</label>
     <input type="text" class="form-control" name="company_number" id="company_number" required>
   </div>
+  <div class="mb-3">
+    <label for="registered_address" class="form-label">Registered Address</label>
+    <input type="text" class="form-control" name="registered_address" id="registered_address">
+  </div>
+  <div class="mb-3">
+    <label for="company_status" class="form-label">Company Status</label>
+    <input type="text" class="form-control" name="company_status" id="company_status">
+  </div>
+  <div class="mb-3">
+    <label for="incorporation_date" class="form-label">Incorporation Date</label>
+    <input type="date" class="form-control" name="incorporation_date" id="incorporation_date">
+  </div>
   <button type="submit" class="btn btn-success">Save</button>
   <a href="{{ url_for('company_bp.companies_list') }}" class="btn btn-secondary">Cancel</a>
 </form>

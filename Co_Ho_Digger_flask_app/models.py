@@ -9,6 +9,9 @@ class Company(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
     company_number = db.Column(db.String(50), unique=True, nullable=False)
+    registered_address = db.Column(db.String(500))   # new field
+    company_status = db.Column(db.String(50))          # new field
+    incorporation_date = db.Column(db.Date)            # new field
 
 class Person(db.Model):
     __tablename__ = "person"

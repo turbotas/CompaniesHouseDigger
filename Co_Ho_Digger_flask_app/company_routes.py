@@ -19,11 +19,26 @@ def companies_new():
     if request.method == "POST":
         name = request.form.get("name")
         company_number = request.form.get("company_number")
+        registered_address = request.form.get("registered_address")
+        company_status = request.form.get("company_status")
+        incorporation_date_str = request.form.get("incorporation_date")
+        # Optionally convert incorporation_date_str to a date object:
+        incorporation_date = None
+        if incorporation_date_str:
+            from datetime import datetime
+            incorporation_date = datetime.strptime(incorporation_date_str, "%Y-%m-%d").date()
+
         if not name or not company_number:
-            flash("Name and Company Number are required!", "warning")
+            flash("Name and Company Number are required.", "warning")
             return render_template("companies_new.html")
 
-        new_company = Company(name=name, company_number=company_number)
+        new_company = Company(
+            name=name,
+            company_number=company_number,
+            registered_address=registered_address,
+            company_status=company_status,
+            incorporation_date=incorporation_date
+        )
         db.session.add(new_company)
         try:
             db.session.commit()
@@ -54,11 +69,6 @@ def companies_delete(company_id):
 
 @company_bp.route("/companies/dig", methods=["GET", "POST"])
 def dig_company():
-    """
-    Show a form to enter a company number.
-    On POST, call the Companies House API and then either update the existing
-    Company record (if the company_number already exists) or create a new one.
-    """
     if request.method == "POST":
         company_number = request.form.get("company_number", "").strip()
         if not company_number:
@@ -87,13 +97,40 @@ def dig_company():
             flash("No company name found in API response.", "danger")
             return render_template("dig_company_form.html")
 
-        # Upsert logic: check if a record with the same company_number exists.
+        # Optionally, extract more fields from the API response.
+        # For example, assume the API returns a nested "registered_office_address" object:
+        address_parts = []
+        reg_address = data.get("registered_office_address", {})
+        for part in ["address_line_1", "address_line_2", "postal_code", "locality"]:
+            if reg_address.get(part):
+                address_parts.append(reg_address.get(part))
+        registered_address = ", ".join(address_parts)
+        company_status = data.get("company_status")
+        incorporation_date_str = data.get("date_of_creation")
+        incorporation_date = None
+        if incorporation_date_str:
+            from datetime import datetime
+            try:
+                incorporation_date = datetime.strptime(incorporation_date_str, "%Y-%m-%d").date()
+            except ValueError:
+                incorporation_date = None
+
+        # Upsert: update if exists, else create.
         existing = Company.query.filter_by(company_number=company_number).first()
         if existing:
-            existing.name = ch_company_name  # Update the existing record.
+            existing.name = ch_company_name
+            existing.registered_address = registered_address
+            existing.company_status = company_status
+            existing.incorporation_date = incorporation_date
             flash("Existing company updated with latest data.", "info")
         else:
-            new_company = Company(name=ch_company_name, company_number=company_number)
+            new_company = Company(
+                name=ch_company_name,
+                company_number=company_number,
+                registered_address=registered_address,
+                company_status=company_status,
+                incorporation_date=incorporation_date
+            )
             db.session.add(new_company)
             flash("New company added.", "success")
         try:
@@ -105,5 +142,4 @@ def dig_company():
 
         return redirect(url_for("company_bp.companies_list"))
 
-    # GET: Show the form
     return render_template("dig_company_form.html")
