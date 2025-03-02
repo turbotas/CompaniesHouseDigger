@@ -1,7 +1,7 @@
 # my_flask_app/company_routes.py
 
 from flask import flash, Blueprint, render_template, request, redirect, url_for
-from .models import db, Company
+from .models import db, Company, Relationship, Person
 import requests
 import os
 from sqlalchemy.exc import IntegrityError
@@ -143,3 +143,41 @@ def dig_company():
         return redirect(url_for("company_bp.companies_list"))
 
     return render_template("dig_company_form.html")
+
+@company_bp.route("/companies/<int:company_id>/view")
+def companies_view(company_id):
+    company = Company.query.get_or_404(company_id)
+    relationships_source = Relationship.query.filter_by(source_type="company", source_id=company.id).all()
+    relationships_target = Relationship.query.filter_by(target_type="company", target_id=company.id).all()
+    all_relationships = relationships_source + relationships_target
+
+    display_data = []
+    for r in all_relationships:
+        # Use the name attribute explicitly:
+        rtype = r.relationship_type.name if r.relationship_type and r.relationship_type.name else "Unknown"
+
+        if r.source_type.lower() == "company":
+            source_obj = Company.query.get(r.source_id)
+            source_display = f"{source_obj.name} ({source_obj.company_number})" if source_obj else "Unknown Company"
+        else:
+            source_obj = Person.query.get(r.source_id)
+            source_display = source_obj.full_name if source_obj else "Unknown Person"
+
+        if r.target_type.lower() == "company":
+            target_obj = Company.query.get(r.target_id)
+            target_display = f"{target_obj.name} ({target_obj.company_number})" if target_obj else "Unknown Company"
+        else:
+            target_obj = Person.query.get(r.target_id)
+            target_display = target_obj.full_name if target_obj else "Unknown Person"
+
+        attributes_str = ", ".join([f"{attr.key}: {attr.value}" for attr in r.attributes]) if r.attributes else "N/A"
+
+        display_data.append({
+            "id": r.id,
+            "relationship_type": rtype,
+            "source_display": source_display,
+            "target_display": target_display,
+            "effective_date": r.effective_date.isoformat() if r.effective_date else "N/A",
+            "attributes": attributes_str
+        })
+    return render_template("companies_view.html", company=company, relationships=display_data)

@@ -24,8 +24,8 @@
         <td>{{ company.name }}</td>
         <td>{{ company.company_number }}</td>
         <td>
-          <a href="{{ url_for('company_bp.companies_edit', company_id=company.id) }}"
-             class="btn btn-sm btn-secondary">Edit</a>
+		  <a href="{{ url_for('company_bp.companies_view', company_id=company.id) }}" class="btn btn-sm btn-info">View</a>
+          <a href="{{ url_for('company_bp.companies_edit', company_id=company.id) }}" class="btn btn-sm btn-secondary">Edit</a>
           <form action="{{ url_for('company_bp.companies_delete', company_id=company.id) }}"
                 method="POST"
                 style="display:inline-block;">

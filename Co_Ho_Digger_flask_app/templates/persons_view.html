@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>View Person: {{ person.full_name }}</h2>
+
+<ul class="list-group mb-4">
+  <li class="list-group-item"><strong>Full Name:</strong> {{ person.full_name }}</li>
+  <!-- Add other person fields if needed -->
+</ul>
+
+<h3>Relationships</h3>
+{% if relationships %}
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Source</th>
+        <th>Target</th>
+        <th>Effective Date</th>
+        <th>Attributes</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in relationships %}
+      <tr>
+        <td>{{ r.relationship_type }}</td>
+        <td>{{ r.source_display }}</td>
+        <td>{{ r.target_display }}</td>
+        <td>{{ r.effective_date }}</td>
+        <td>{{ r.attributes }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p>No relationships found for this person.</p>
+{% endif %}
+
+<a href="{{ url_for('person_bp.persons_list') }}" class="btn btn-secondary mt-3">Back to Persons</a>
+{% endblock %}

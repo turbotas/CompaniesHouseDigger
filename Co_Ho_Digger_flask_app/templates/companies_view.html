@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>View Company: {{ company.name }} ({{ company.company_number }})</h2>
+
+<ul class="list-group mb-4">
+  <li class="list-group-item"><strong>Registered Address:</strong> {{ company.registered_address or 'N/A' }}</li>
+  <li class="list-group-item"><strong>Status:</strong> {{ company.company_status or 'N/A' }}</li>
+  <li class="list-group-item"><strong>Incorporation Date:</strong> {{ company.incorporation_date or 'N/A' }}</li>
+</ul>
+
+<h3>Relationships</h3>
+{% if relationships %}
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Source</th>
+        <th>Target</th>
+        <th>Effective Date</th>
+        <th>Attributes</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in relationships %}
+      <tr>
+        <td>{{ r.relationship_type }}</td>
+        <td>{{ r.source_display }}</td>
+        <td>{{ r.target_display }}</td>
+        <td>{{ r.effective_date }}</td>
+        <td>{{ r.attributes }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p>No relationships found for this company.</p>
+{% endif %}
+
+<a href="{{ url_for('company_bp.companies_list') }}" class="btn btn-secondary mt-3">Back to Companies</a>
+{% endblock %}

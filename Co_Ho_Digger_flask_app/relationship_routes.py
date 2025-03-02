@@ -11,40 +11,38 @@ def relationships_list():
     display_data = []
 
     for r in relationships:
-        # Get relationship type name
+        # Get relationship type label
         rtype = r.relationship_type.name if r.relationship_type else "Unknown"
 
-        # Build source display string
-        if r.source_type == "company":
+        # Build source display (if company, show name and number; if person, show full name)
+        if r.source_type.lower() == "company":
             company_obj = Company.query.get(r.source_id)
             source_display = f"{company_obj.name} ({company_obj.company_number})" if company_obj else "Unknown Company"
         else:
             person_obj = Person.query.get(r.source_id)
             source_display = person_obj.full_name if person_obj else "Unknown Person"
 
-        # Build target display string
-        if r.target_type == "company":
+        # Build target display similarly
+        if r.target_type.lower() == "company":
             company_obj = Company.query.get(r.target_id)
             target_display = f"{company_obj.name} ({company_obj.company_number})" if company_obj else "Unknown Company"
         else:
             person_obj = Person.query.get(r.target_id)
             target_display = person_obj.full_name if person_obj else "Unknown Person"
 
-        # Build a string for all attributes (if any)
-        attributes_str = ", ".join([f"{attr.key}: {attr.value}" for attr in r.attributes])
+        # Build attributes string, if any
+        attributes_str = ", ".join([f"{attr.key}: {attr.value}" for attr in r.attributes]) if r.attributes else "N/A"
 
         display_data.append({
             "id": r.id,
             "relationship_type": rtype,
             "source_display": source_display,
             "target_display": target_display,
+            "effective_date": r.effective_date.isoformat() if r.effective_date else "N/A",
             "attributes": attributes_str
         })
 
     return render_template("relationships_list.html", relationships=display_data)
-
-
-
 
 
 @relationship_bp.route("/relationships/new", methods=["GET", "POST"])
