@@ -9,6 +9,7 @@ from .person_routes import person_bp
 from .relationship_type_routes import reltype_bp
 from .relationship_routes import relationship_bp
 from .network_routes import network_bp
+from .relationship_attribute_routes import relattr_bp
 
 import os
 
@@ -32,6 +33,7 @@ def create_app():
     app.register_blueprint(reltype_bp)
     app.register_blueprint(relationship_bp)
     app.register_blueprint(network_bp)
+    app.register_blueprint(relattr_bp)  # NEW
 
     @app.route("/")
     def home():

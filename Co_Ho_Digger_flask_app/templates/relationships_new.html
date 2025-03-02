@@ -101,6 +101,17 @@
     </select>
   </div>
 
+  <div class="mb-3">
+    <label for="effective_date" class="form-label">Effective Date</label>
+    <input type="date" class="form-control" name="effective_date" id="effective_date">
+  </div>
+
+  <!-- New optional field for shareholding relationships -->
+  <div class="mb-3">
+    <label for="shares" class="form-label">Number of Shares (if applicable)</label>
+    <input type="number" class="form-control" name="shares" id="shares">
+  </div>
+
   <button type="submit" class="btn btn-success">Create Relationship</button>
   <a href="{{ url_for('relationship_bp.relationships_list') }}" class="btn btn-secondary">Cancel</a>
 </form>

@@ -33,29 +33,35 @@ def network_view():
             "group": "person"
         })
 
-    # Build edges
+    # Build edges list
     edges = []
     for r in relationships:
-        # Relationship type label
-        rel_type = r.relationship_type.name if r.relationship_type else "Unknown"
+        # Get relationship type label
+        base_label = r.relationship_type.name if r.relationship_type else "Unknown"
+        
+        # Gather attributes (e.g., shares, etc.)
+        attributes_str = ", ".join([f"{attr.key}: {attr.value}" for attr in r.attributes])
+        if attributes_str:
+            edge_label = f"{base_label} ({attributes_str})"
+        else:
+            edge_label = base_label
 
-        # Source
+        # Determine source ID
         if r.source_type == "company":
             source_id = f"company_{r.source_id}"
-        else:  # 'person'
+        else:
             source_id = f"person_{r.source_id}"
 
-        # Target
+        # Determine target ID
         if r.target_type == "company":
             target_id = f"company_{r.target_id}"
-        else:  # 'person'
+        else:
             target_id = f"person_{r.target_id}"
 
         edges.append({
             "from": source_id,
             "to": target_id,
-            "label": rel_type  # e.g. Director, Shareholder, etc.
+            "label": edge_label
         })
 
-    # Render template, passing our arrays
     return render_template("network_view.html", nodes=nodes, edges=edges)

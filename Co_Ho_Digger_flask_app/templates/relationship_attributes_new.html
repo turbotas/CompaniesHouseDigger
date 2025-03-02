@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Add Relationship Attribute</h2>
+<form method="POST" action="{{ url_for('relattr_bp.relationship_attributes_new') }}">
+  <div class="mb-3">
+    <label for="relationship_id" class="form-label">Relationship</label>
+    <select class="form-select" name="relationship_id" id="relationship_id" required>
+      <option value="">-- Select a Relationship --</option>
+      {% for rel in relationships %}
+      <option value="{{ rel.id }}">Relationship {{ rel.id }} ({{ rel.relationship_type.name if rel.relationship_type else 'Unknown' }})</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="mb-3">
+    <label for="key" class="form-label">Attribute Key</label>
+    <input type="text" class="form-control" name="key" id="key" required>
+  </div>
+  <div class="mb-3">
+    <label for="value" class="form-label">Attribute Value</label>
+    <input type="text" class="form-control" name="value" id="value" required>
+  </div>
+  <button type="submit" class="btn btn-success">Add Attribute</button>
+  <a href="{{ url_for('relattr_bp.relationship_attributes_list') }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

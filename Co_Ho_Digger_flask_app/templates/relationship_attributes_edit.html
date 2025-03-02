@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Edit Relationship Attribute #{{ attribute.id }}</h2>
+<form method="POST" action="{{ url_for('relattr_bp.relationship_attributes_edit', attr_id=attribute.id) }}">
+  <div class="mb-3">
+    <label for="key" class="form-label">Attribute Key</label>
+    <input type="text" class="form-control" name="key" id="key" value="{{ attribute.key }}" required>
+  </div>
+  <div class="mb-3">
+    <label for="value" class="form-label">Attribute Value</label>
+    <input type="text" class="form-control" name="value" id="value" value="{{ attribute.value }}" required>
+  </div>
+  <button type="submit" class="btn btn-primary">Update Attribute</button>
+  <a href="{{ url_for('relattr_bp.relationship_attributes_list') }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

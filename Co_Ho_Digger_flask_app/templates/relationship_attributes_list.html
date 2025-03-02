@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Relationship Attributes</h2>
+<a href="{{ url_for('relattr_bp.relationship_attributes_new') }}" class="btn btn-primary mb-3">Add New Attribute</a>
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Relationship ID</th>
+      <th>Key</th>
+      <th>Value</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for attr in attributes %}
+    <tr>
+      <td>{{ attr.id }}</td>
+      <td>{{ attr.relationship_id }}</td>
+      <td>{{ attr.key }}</td>
+      <td>{{ attr.value }}</td>
+      <td>
+        <a href="{{ url_for('relattr_bp.relationship_attributes_edit', attr_id=attr.id) }}" class="btn btn-sm btn-secondary">Edit</a>
+        <form action="{{ url_for('relattr_bp.relationship_attributes_delete', attr_id=attr.id) }}" method="POST" style="display:inline;">
+          <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this attribute?');">Delete</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

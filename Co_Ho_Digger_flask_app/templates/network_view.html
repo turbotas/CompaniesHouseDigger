@@ -6,45 +6,46 @@
 
 <!-- Load Vis Network from a CDN -->
 <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
-
 <script>
-// We have 'nodes' and 'edges' from Flask as Python lists.
-// We'll convert them to JSON for JavaScript:
-const nodesData = {{ nodes|tojson }};
-const edgesData = {{ edges|tojson }};
+  const nodesData = {{ nodes|tojson }};
+  const edgesData = {{ edges|tojson }};
 
-const nodes = new vis.DataSet(nodesData);
-const edges = new vis.DataSet(edgesData);
+  const nodes = new vis.DataSet(nodesData);
+  const edges = new vis.DataSet(edgesData);
 
-const container = document.getElementById('network');
-const data = { nodes: nodes, edges: edges };
+  const container = document.getElementById('network');
+  const data = { nodes: nodes, edges: edges };
 
-const options = {
-  interaction: {
-    hover: true,
-    dragNodes: true,
-    dragView: true,
-    zoomView: true
-  },
-  edges: {
-    font: { align: 'horizontal' }
-  },
-  physics: {
-    enabled: true,
-    solver: 'forceAtlas2Based'
-  }
-};
+  const options = {
+    interaction: {
+      hover: true,
+      dragNodes: true,
+      dragView: true,
+      zoomView: true
+    },
+    edges: {
+      // Add an arrow pointing "to" the target node
+      arrows: {
+        to: { enabled: true, scaleFactor: 1 }
+      },
+      font: { align: 'horizontal' }
+    },
+    physics: {
+      enabled: true,
+      solver: 'forceAtlas2Based',
+      stabilization: { iterations: 200 }
+    }
+  };
 
-const network = new vis.Network(container, data, options);
+  const network = new vis.Network(container, data, options);
 
-// Optionally, add event listeners
-network.on("click", function (params) {
-  if (params.nodes.length > 0) {
-    console.log("Clicked node:", params.nodes[0]);
-  }
-  if (params.edges.length > 0) {
-    console.log("Clicked edge:", params.edges[0]);
-  }
-});
+  network.on("click", function (params) {
+    if (params.nodes.length > 0) {
+      console.log("Clicked node:", params.nodes[0]);
+    }
+    if (params.edges.length > 0) {
+      console.log("Clicked edge:", params.edges[0]);
+    }
+  });
 </script>
 {% endblock %}

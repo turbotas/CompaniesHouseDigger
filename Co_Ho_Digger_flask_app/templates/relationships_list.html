@@ -14,6 +14,7 @@
         <th>Relationship Type</th>
         <th>Source</th>
         <th>Target</th>
+        <th>Attributes</th>
         <th>Actions</th>
       </tr>
     </thead>
@@ -23,16 +24,11 @@
         <td>{{ r.relationship_type }}</td>
         <td>{{ r.source_display }}</td>
         <td>{{ r.target_display }}</td>
+        <td>{{ r.attributes }}</td>
         <td>
-          <!-- We only have delete in this example -->
-          <form action="{{ url_for('relationship_bp.relationships_delete', rel_id=r.id) }}"
-                method="POST"
-                style="display:inline-block;">
-            <button type="submit"
-                    class="btn btn-sm btn-danger"
-                    onclick="return confirm('Delete this relationship?');">
-              Delete
-            </button>
+          <!-- Delete action (for example) -->
+          <form action="{{ url_for('relationship_bp.relationships_delete', rel_id=r.id) }}" method="POST" style="display:inline-block;">
+            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this relationship?');">Delete</button>
           </form>
         </td>
       </tr>
