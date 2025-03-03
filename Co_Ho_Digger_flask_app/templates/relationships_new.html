@@ -3,7 +3,6 @@
 <h2>Create a New Relationship</h2>
 
 <form method="POST" action="{{ url_for('relationship_bp.relationships_new') }}">
-
   <!-- Relationship Type -->
   <div class="mb-3">
     <label for="relationship_type_id" class="form-label">Relationship Type</label>
@@ -15,29 +14,20 @@
     </select>
   </div>
 
-  <!-- Source Type -->
+  <!-- Source Selection -->
   <div class="mb-3">
     <label class="form-label">Source Type</label><br>
     <div class="form-check form-check-inline">
-      <input class="form-check-input"
-             type="radio"
-             name="source_type"
-             id="source_type_company"
-             value="company" checked>
+      <input class="form-check-input" type="radio" name="source_type" id="source_type_company" value="company" checked>
       <label class="form-check-label" for="source_type_company">Company</label>
     </div>
     <div class="form-check form-check-inline">
-      <input class="form-check-input"
-             type="radio"
-             name="source_type"
-             id="source_type_person"
-             value="person">
+      <input class="form-check-input" type="radio" name="source_type" id="source_type_person" value="person">
       <label class="form-check-label" for="source_type_person">Person</label>
     </div>
   </div>
-
-  <!-- Source as Company dropdown -->
-  <div class="mb-3">
+  <!-- Source Company Dropdown -->
+  <div class="mb-3" id="source_company_div">
     <label for="source_id_company" class="form-label">If Source is Company, select:</label>
     <select class="form-select" name="source_id_company" id="source_id_company">
       <option value="">-- Choose a Company --</option>
@@ -46,9 +36,8 @@
       {% endfor %}
     </select>
   </div>
-
-  <!-- Source as Person dropdown -->
-  <div class="mb-3">
+  <!-- Source Person Dropdown -->
+  <div class="mb-3" id="source_person_div" style="display:none;">
     <label for="source_id_person" class="form-label">If Source is Person, select:</label>
     <select class="form-select" name="source_id_person" id="source_id_person">
       <option value="">-- Choose a Person --</option>
@@ -58,29 +47,20 @@
     </select>
   </div>
 
-  <!-- Target Type -->
+  <!-- Target Selection -->
   <div class="mb-3">
     <label class="form-label">Target Type</label><br>
     <div class="form-check form-check-inline">
-      <input class="form-check-input"
-             type="radio"
-             name="target_type"
-             id="target_type_company"
-             value="company" checked>
+      <input class="form-check-input" type="radio" name="target_type" id="target_type_company" value="company" checked>
       <label class="form-check-label" for="target_type_company">Company</label>
     </div>
     <div class="form-check form-check-inline">
-      <input class="form-check-input"
-             type="radio"
-             name="target_type"
-             id="target_type_person"
-             value="person">
+      <input class="form-check-input" type="radio" name="target_type" id="target_type_person" value="person">
       <label class="form-check-label" for="target_type_person">Person</label>
     </div>
   </div>
-
-  <!-- Target as Company dropdown -->
-  <div class="mb-3">
+  <!-- Target Company Dropdown -->
+  <div class="mb-3" id="target_company_div">
     <label for="target_id_company" class="form-label">If Target is Company, select:</label>
     <select class="form-select" name="target_id_company" id="target_id_company">
       <option value="">-- Choose a Company --</option>
@@ -89,9 +69,8 @@
       {% endfor %}
     </select>
   </div>
-
-  <!-- Target as Person dropdown -->
-  <div class="mb-3">
+  <!-- Target Person Dropdown -->
+  <div class="mb-3" id="target_person_div" style="display:none;">
     <label for="target_id_person" class="form-label">If Target is Person, select:</label>
     <select class="form-select" name="target_id_person" id="target_id_person">
       <option value="">-- Choose a Person --</option>
@@ -101,12 +80,11 @@
     </select>
   </div>
 
+  <!-- Additional fields -->
   <div class="mb-3">
     <label for="effective_date" class="form-label">Effective Date</label>
     <input type="date" class="form-control" name="effective_date" id="effective_date">
   </div>
-
-  <!-- New optional field for shareholding relationships -->
   <div class="mb-3">
     <label for="shares" class="form-label">Number of Shares (if applicable)</label>
     <input type="number" class="form-control" name="shares" id="shares">
@@ -115,4 +93,41 @@
   <button type="submit" class="btn btn-success">Create Relationship</button>
   <a href="{{ url_for('relationship_bp.relationships_list') }}" class="btn btn-secondary">Cancel</a>
 </form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    // Update Source dropdowns based on source_type radio buttons
+    function updateSourceDropdown() {
+        const sourceType = document.querySelector('input[name="source_type"]:checked').value;
+        if (sourceType === "company") {
+            document.getElementById("source_company_div").style.display = "block";
+            document.getElementById("source_person_div").style.display = "none";
+        } else {
+            document.getElementById("source_company_div").style.display = "none";
+            document.getElementById("source_person_div").style.display = "block";
+        }
+    }
+    // Update Target dropdowns based on target_type radio buttons
+    function updateTargetDropdown() {
+        const targetType = document.querySelector('input[name="target_type"]:checked').value;
+        if (targetType === "company") {
+            document.getElementById("target_company_div").style.display = "block";
+            document.getElementById("target_person_div").style.display = "none";
+        } else {
+            document.getElementById("target_company_div").style.display = "none";
+            document.getElementById("target_person_div").style.display = "block";
+        }
+    }
+    // Attach event listeners
+    document.querySelectorAll('input[name="source_type"]').forEach(function(radio){
+        radio.addEventListener('change', updateSourceDropdown);
+    });
+    document.querySelectorAll('input[name="target_type"]').forEach(function(radio){
+        radio.addEventListener('change', updateTargetDropdown);
+    });
+    // Initialize display on page load
+    updateSourceDropdown();
+    updateTargetDropdown();
+});
+</script>
 {% endblock %}

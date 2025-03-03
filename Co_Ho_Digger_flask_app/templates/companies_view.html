@@ -37,4 +37,6 @@
 {% endif %}
 
 <a href="{{ url_for('company_bp.companies_list') }}" class="btn btn-secondary mt-3">Back to Companies</a>
+<a href="{{ url_for('network_bp.network_view', focus_company=company.id, depth=2) }}" class="btn btn-secondary mt-3">View in Network (Depth 2)</a>
+
 {% endblock %}

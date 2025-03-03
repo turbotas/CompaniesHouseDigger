@@ -2,12 +2,40 @@
 {% block content %}
 <h2>Network Visualization</h2>
 
-<!-- Checkbox Filter Section -->
+<!-- Focus Filter Form -->
+<form method="GET" action="{{ url_for('network_bp.network_view') }}" class="mb-3">
+  <div class="row align-items-center">
+    <div class="col-auto">
+      <label for="focus_company" class="col-form-label">Focus on Company:</label>
+    </div>
+    <div class="col-auto">
+      <select class="form-select" name="focus_company" id="focus_company">
+        <option value="">-- All --</option>
+        {% for comp in companies %}
+          <option value="{{ comp.id }}" {% if current_focus and current_focus == comp.id|string %}selected{% endif %}>
+            {{ comp.name }} ({{ comp.company_number }})
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-auto">
+      <label for="depth" class="col-form-label">Depth:</label>
+    </div>
+    <div class="col-auto">
+      <input type="number" class="form-control" name="depth" id="depth" value="{{ current_depth }}" min="1" max="10">
+    </div>
+    <div class="col-auto">
+      <button type="submit" class="btn btn-primary">Apply Focus</button>
+    </div>
+  </div>
+</form>
+
+<!-- Relationship Type Filter Checkboxes -->
 <div class="mb-3">
   <label class="form-label"><strong>Filter by Relationship Type:</strong></label><br>
   {% for rt in relationship_types %}
     <div class="form-check form-check-inline">
-      <input class="form-check-input relationship-type-checkbox" type="checkbox" id="rt_{{ rt }}" value="{{ rt }}" checked>
+      <input class="form-check-input rel-type-checkbox" type="checkbox" id="rt_{{ rt }}" value="{{ rt }}" checked>
       <label class="form-check-label" for="rt_{{ rt }}">{{ rt }}</label>
     </div>
   {% endfor %}
@@ -18,19 +46,18 @@
 <!-- Load Vis Network from CDN -->
 <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
 <script>
-  // Original nodes and edges data passed from Flask
-  const nodesData = {{ nodes|tojson }};
+  // The server-side route has already applied focus filtering.
+  // So, we use the passed nodes and edges as our "original" datasets.
+  const originalNodesData = {{ nodes|tojson }};
   const originalEdgesData = {{ edges|tojson }};
 
-  // Create Vis DataSets
-  const nodes = new vis.DataSet(nodesData);
-  // We'll keep a copy of the original edges for filtering
+  // Create Vis DataSets.
+  const nodes = new vis.DataSet(originalNodesData);
   let edges = new vis.DataSet(originalEdgesData);
 
   const container = document.getElementById('network');
   const data = { nodes: nodes, edges: edges };
 
-  // Set up network options with an arrow at the "to" end:
   const options = {
     interaction: {
       hover: true,
@@ -51,27 +78,38 @@
 
   const network = new vis.Network(container, data, options);
 
-  // Filtering function: updates edges based on checked relationship types.
+  // Filtering function: update edges based on relationship type checkboxes, then remove orphan nodes.
   function filterEdges() {
-    // Get list of checked relationship types
-    const checkboxes = document.querySelectorAll('.relationship-type-checkbox');
+    const checkboxes = document.querySelectorAll('.rel-type-checkbox');
     let checkedTypes = [];
     checkboxes.forEach(function(cb) {
       if (cb.checked) {
         checkedTypes.push(cb.value);
       }
     });
-    // Filter originalEdgesData: keep edge if its "rtype" is in checkedTypes.
-    let filteredEdges = originalEdgesData.filter(function(edge) {
+    // Filter originalEdgesData: keep edge if its rtype is in checkedTypes.
+    const filteredEdges = originalEdgesData.filter(function(edge) {
       return checkedTypes.includes(edge.rtype);
     });
-    // Update the edges DataSet
+    // Update the edges DataSet.
     edges.clear();
     edges.add(filteredEdges);
+
+    // Now filter nodes: include only nodes that are connected by the filtered edges.
+    let connectedNodeIds = new Set();
+    filteredEdges.forEach(function(edge) {
+      connectedNodeIds.add(edge.from);
+      connectedNodeIds.add(edge.to);
+    });
+    const filteredNodes = originalNodesData.filter(function(node) {
+      return connectedNodeIds.has(node.id);
+    });
+    nodes.clear();
+    nodes.add(filteredNodes);
   }
 
-  // Attach event listeners to all checkboxes for changes.
-  document.querySelectorAll('.relationship-type-checkbox').forEach(function(cb) {
+  // Attach event listeners to checkboxes.
+  document.querySelectorAll('.rel-type-checkbox').forEach(function(cb) {
     cb.addEventListener('change', filterEdges);
   });
 </script>
