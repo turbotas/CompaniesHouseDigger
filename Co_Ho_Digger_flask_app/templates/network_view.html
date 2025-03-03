@@ -2,20 +2,35 @@
 {% block content %}
 <h2>Network Visualization</h2>
 
+<!-- Checkbox Filter Section -->
+<div class="mb-3">
+  <label class="form-label"><strong>Filter by Relationship Type:</strong></label><br>
+  {% for rt in relationship_types %}
+    <div class="form-check form-check-inline">
+      <input class="form-check-input relationship-type-checkbox" type="checkbox" id="rt_{{ rt }}" value="{{ rt }}" checked>
+      <label class="form-check-label" for="rt_{{ rt }}">{{ rt }}</label>
+    </div>
+  {% endfor %}
+</div>
+
 <div id="network" style="width: 100%; height: 600px; border: 1px solid #ccc;"></div>
 
-<!-- Load Vis Network from a CDN -->
+<!-- Load Vis Network from CDN -->
 <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
 <script>
+  // Original nodes and edges data passed from Flask
   const nodesData = {{ nodes|tojson }};
-  const edgesData = {{ edges|tojson }};
+  const originalEdgesData = {{ edges|tojson }};
 
+  // Create Vis DataSets
   const nodes = new vis.DataSet(nodesData);
-  const edges = new vis.DataSet(edgesData);
+  // We'll keep a copy of the original edges for filtering
+  let edges = new vis.DataSet(originalEdgesData);
 
   const container = document.getElementById('network');
   const data = { nodes: nodes, edges: edges };
 
+  // Set up network options with an arrow at the "to" end:
   const options = {
     interaction: {
       hover: true,
@@ -24,10 +39,7 @@
       zoomView: true
     },
     edges: {
-      // Add an arrow pointing "to" the target node
-      arrows: {
-        to: { enabled: true, scaleFactor: 1 }
-      },
+      arrows: { to: { enabled: true, scaleFactor: 1 } },
       font: { align: 'horizontal' }
     },
     physics: {
@@ -39,13 +51,28 @@
 
   const network = new vis.Network(container, data, options);
 
-  network.on("click", function (params) {
-    if (params.nodes.length > 0) {
-      console.log("Clicked node:", params.nodes[0]);
-    }
-    if (params.edges.length > 0) {
-      console.log("Clicked edge:", params.edges[0]);
-    }
+  // Filtering function: updates edges based on checked relationship types.
+  function filterEdges() {
+    // Get list of checked relationship types
+    const checkboxes = document.querySelectorAll('.relationship-type-checkbox');
+    let checkedTypes = [];
+    checkboxes.forEach(function(cb) {
+      if (cb.checked) {
+        checkedTypes.push(cb.value);
+      }
+    });
+    // Filter originalEdgesData: keep edge if its "rtype" is in checkedTypes.
+    let filteredEdges = originalEdgesData.filter(function(edge) {
+      return checkedTypes.includes(edge.rtype);
+    });
+    // Update the edges DataSet
+    edges.clear();
+    edges.add(filteredEdges);
+  }
+
+  // Attach event listeners to all checkboxes for changes.
+  document.querySelectorAll('.relationship-type-checkbox').forEach(function(cb) {
+    cb.addEventListener('change', filterEdges);
   });
 </script>
 {% endblock %}
