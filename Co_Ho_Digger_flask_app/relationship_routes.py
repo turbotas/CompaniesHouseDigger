@@ -98,7 +98,6 @@ def relationships_new():
         return redirect(url_for("relationship_bp.relationships_list"))
 
     # GET
-#    relationship_types = RelationshipType.query.all()
     relationship_types = RelationshipType.query.order_by(RelationshipType.name.asc()).all()
     companies = Company.query.order_by(Company.name.asc()).all()
     persons = Person.query.order_by(Person.full_name.asc()).all()   

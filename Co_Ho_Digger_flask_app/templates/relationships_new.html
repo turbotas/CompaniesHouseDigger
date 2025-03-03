@@ -19,18 +19,18 @@
     <label class="form-label">Source Type</label><br>
     <div class="form-check form-check-inline">
       <input class="form-check-input" type="radio" name="source_type" id="source_type_company" value="company" checked>
-      <label class="form-check-label" for="source_type_company">Company</label>
+      <label class="form-check-label" for="source_type_company">UK Company</label>
     </div>
     <div class="form-check form-check-inline">
       <input class="form-check-input" type="radio" name="source_type" id="source_type_person" value="person">
-      <label class="form-check-label" for="source_type_person">Person</label>
+      <label class="form-check-label" for="source_type_person">Person or non UK Company</label>
     </div>
   </div>
   <!-- Source Company Dropdown -->
   <div class="mb-3" id="source_company_div">
-    <label for="source_id_company" class="form-label">If Source is Company, select:</label>
+    <label for="source_id_company" class="form-label">If Source is UK Company, select:</label>
     <select class="form-select" name="source_id_company" id="source_id_company">
-      <option value="">-- Choose a Company --</option>
+      <option value="">-- Choose a UK Company --</option>
       {% for c in companies %}
       <option value="{{ c.id }}">{{ c.name }} ({{ c.company_number }})</option>
       {% endfor %}
@@ -40,7 +40,7 @@
   <div class="mb-3" id="source_person_div" style="display:none;">
     <label for="source_id_person" class="form-label">If Source is Person, select:</label>
     <select class="form-select" name="source_id_person" id="source_id_person">
-      <option value="">-- Choose a Person --</option>
+      <option value="">-- Choose a Person or non UK Company--</option>
       {% for p in persons %}
       <option value="{{ p.id }}">{{ p.full_name }}</option>
       {% endfor %}
@@ -52,18 +52,18 @@
     <label class="form-label">Target Type</label><br>
     <div class="form-check form-check-inline">
       <input class="form-check-input" type="radio" name="target_type" id="target_type_company" value="company" checked>
-      <label class="form-check-label" for="target_type_company">Company</label>
+      <label class="form-check-label" for="target_type_company">UK Company</label>
     </div>
     <div class="form-check form-check-inline">
       <input class="form-check-input" type="radio" name="target_type" id="target_type_person" value="person">
-      <label class="form-check-label" for="target_type_person">Person</label>
+      <label class="form-check-label" for="target_type_person">Person or non UK Company</label>
     </div>
   </div>
   <!-- Target Company Dropdown -->
   <div class="mb-3" id="target_company_div">
-    <label for="target_id_company" class="form-label">If Target is Company, select:</label>
+    <label for="target_id_company" class="form-label">If Target is UK Company, select:</label>
     <select class="form-select" name="target_id_company" id="target_id_company">
-      <option value="">-- Choose a Company --</option>
+      <option value="">-- Choose a UK Company --</option>
       {% for c in companies %}
       <option value="{{ c.id }}">{{ c.name }} ({{ c.company_number }})</option>
       {% endfor %}
@@ -73,7 +73,7 @@
   <div class="mb-3" id="target_person_div" style="display:none;">
     <label for="target_id_person" class="form-label">If Target is Person, select:</label>
     <select class="form-select" name="target_id_person" id="target_id_person">
-      <option value="">-- Choose a Person --</option>
+      <option value="">-- Choose a Person or non UK Company--</option>
       {% for p in persons %}
       <option value="{{ p.id }}">{{ p.full_name }}</option>
       {% endfor %}
