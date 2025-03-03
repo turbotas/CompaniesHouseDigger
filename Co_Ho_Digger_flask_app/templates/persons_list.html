@@ -1,44 +1,39 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h2>Persons</h2>
-  <a href="{{ url_for('person_bp.persons_new') }}" class="btn btn-primary">Add New Person</a>
-</div>
-
-{% if persons|length == 0 %}
-  <div class="alert alert-warning">No persons found.</div>
-{% else %}
-  <table class="table table-striped">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Full Name</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for person in persons %}
-      <tr>
-        <td>{{ person.id }}</td>
-        <td>{{ person.full_name }}</td>
-        <td>
-		  <a href="{{ url_for('person_bp.persons_view', person_id=person.id) }}" class="btn btn-sm btn-info">View</a>
-          <a href="{{ url_for('person_bp.persons_edit', person_id=person.id) }}" class="btn btn-sm btn-secondary">Edit</a>
-          <form action="{{ url_for('person_bp.persons_delete', person_id=person.id) }}"
-                method="POST"
-                style="display:inline-block;">
-            <button
-              class="btn btn-sm btn-danger"
-              type="submit"
-              onclick="return confirm('Delete this person?');"
-            >
-              Delete
-            </button>
-          </form>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-{% endif %}
+<h2>Persons</h2>
+<a href="{{ url_for('person_bp.persons_new') }}" class="btn btn-primary mb-3">Add New Person</a>
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>
+        <a href="{{ url_for('person_bp.persons_list', sort='full_name', order='desc' if sort=='full_name' and order=='asc' else 'asc') }}"
+           class="text-decoration-none text-reset">
+          Full Name
+          {% if sort == 'full_name' %}
+            {% if order == 'asc' %}
+              &uarr;
+            {% else %}
+              &darr;
+            {% endif %}
+          {% endif %}
+        </a>
+      </th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for person in persons %}
+    <tr>
+      <td>{{ person.full_name }}</td>
+      <td>
+        <a href="{{ url_for('person_bp.persons_view', person_id=person.id) }}" class="btn btn-sm btn-info">View</a>
+        <a href="{{ url_for('person_bp.persons_edit', person_id=person.id) }}" class="btn btn-sm btn-secondary">Edit</a>
+        <form action="{{ url_for('person_bp.persons_delete', person_id=person.id) }}" method="POST" style="display:inline-block;">
+          <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this person?');">Delete</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
 {% endblock %}

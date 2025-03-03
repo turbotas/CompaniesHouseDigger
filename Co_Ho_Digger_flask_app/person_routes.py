@@ -7,8 +7,21 @@ person_bp = Blueprint("person_bp", __name__, template_folder="templates")
 
 @person_bp.route("/persons")
 def persons_list():
-    persons = Person.query.all()
-    return render_template("persons_list.html", persons=persons)
+    sort = request.args.get("sort", "full_name")
+    order = request.args.get("order", "asc")
+    
+    query = Person.query
+    if sort == "full_name":
+        if order == "asc":
+            query = query.order_by(Person.full_name.asc())
+        else:
+            query = query.order_by(Person.full_name.desc())
+    else:
+        query = query.order_by(Person.full_name.asc())
+
+    persons = query.all()
+    return render_template("persons_list.html", persons=persons, sort=sort, order=order)
+
 
 @person_bp.route("/persons/new", methods=["GET", "POST"])
 def persons_new():

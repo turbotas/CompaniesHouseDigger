@@ -11,8 +11,27 @@ company_bp = Blueprint("company_bp", __name__, template_folder="templates")
 
 @company_bp.route("/companies")
 def companies_list():
-    companies = Company.query.all()
-    return render_template("companies_list.html", companies=companies)
+    from .models import Company  # ensure Company is imported
+
+    sort = request.args.get('sort', 'name')   # default sort by name
+    order = request.args.get('order', 'asc')    # default ascending
+
+    query = Company.query
+    if sort == 'name':
+        if order == 'asc':
+            query = query.order_by(Company.name.asc())
+        else:
+            query = query.order_by(Company.name.desc())
+    elif sort == 'company_number':
+        if order == 'asc':
+            query = query.order_by(Company.company_number.asc())
+        else:
+            query = query.order_by(Company.company_number.desc())
+    else:
+        query = query.order_by(Company.name.asc())
+
+    companies = query.all()
+    return render_template("companies_list.html", companies=companies, sort=sort, order=order)
 
 @company_bp.route("/companies/new", methods=["GET", "POST"])
 def companies_new():
