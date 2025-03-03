@@ -27,7 +27,7 @@ Companies House Digger is a Flask-based web application for mining and visualizi
    git clone https://github.com/yourusername/CompaniesHouseDigger.git
    cd CompaniesHouseDigger
    python -m venv venv
-   .\venv\Scripts\Activate.ps1   
+   .\venv\Scripts\Activate.ps1  or Linux something like source venv/bin/activate
    pip install -r .\requirements.txt
    <move the .env.sample to .env and edit>
    python .\run.py
