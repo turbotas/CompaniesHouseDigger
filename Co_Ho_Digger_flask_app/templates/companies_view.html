@@ -41,6 +41,9 @@
 <form method="POST" action="{{ url_for('company_bp.update_officers', company_id=company.id) }}" style="display:inline;">
     <button type="submit" class="btn btn-secondary mt-3">Get/Update Officers</button>
 </form>
+<form method="POST" action="{{ url_for('company_bp.update_psc', company_id=company.id) }}" style="display:inline;">
+    <button type="submit" class="btn btn-secondary mt-3">Update PSC</button>
+</form>
 
 <div class="mt-3">
   {% if previous_company %}

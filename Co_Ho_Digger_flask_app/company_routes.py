@@ -1,7 +1,7 @@
 # my_flask_app/company_routes.py
 
 from flask import flash, Blueprint, render_template, request, redirect, url_for
-from .models import db, Company, Relationship, Person, Relationship, RelationshipType
+from .models import db, Company, Relationship, Person, Relationship, RelationshipType, RelationshipAttribute
 import requests
 import os
 from datetime import datetime
@@ -112,6 +112,12 @@ def dig_company():
             return render_template("dig_company_form.html")
 
         data = response.json()
+        
+        # Only print the raw JSON if DEBUG_JSON is set to true.
+        if os.getenv("DEBUG_JSON", "false").lower() == "true":
+            print("DEBUG: Raw PSC Data:")
+            print(data)
+        
         ch_company_name = data.get("company_name")
         if not ch_company_name:
             flash("No company name found in API response.", "danger")
@@ -233,6 +239,12 @@ def update_officers(company_id):
         return redirect(url_for("company_bp.companies_view", company_id=company.id))
     
     data = response.json()
+    
+    # Only print the raw JSON if DEBUG_JSON is set to true.
+    if os.getenv("DEBUG_JSON", "false").lower() == "true":
+        print("DEBUG: Raw PSC Data:")
+        print(data)
+    
     officers_list = data.get("items", [])
     
     for officer in officers_list:
@@ -301,6 +313,174 @@ def update_officers(company_id):
     try:
         db.session.commit()
         flash("Officers updated successfully.", "success")
+    except IntegrityError as e:
+        db.session.rollback()
+        flash(f"Database error: {e}", "danger")
+    
+    return redirect(url_for("company_bp.companies_view", company_id=company.id))
+
+@company_bp.route("/companies/<int:company_id>/update_psc", methods=["POST"])
+def update_psc(company_id):
+    company = Company.query.get_or_404(company_id)
+    api_key = os.getenv("COMPANIES_HOUSE_API_KEY")
+    if not api_key:
+        flash("Companies House API key is not configured.", "danger")
+        return redirect(url_for("company_bp.companies_view", company_id=company.id))
+    
+    # Build the PSC endpoint URL.
+    psc_url = f"https://api.company-information.service.gov.uk/company/{company.company_number}/persons-with-significant-control"
+    
+    try:
+        response = requests.get(psc_url, auth=(api_key, ""))
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        flash(f"Error fetching PSC data: {err}", "danger")
+        return redirect(url_for("company_bp.companies_view", company_id=company.id))
+    except requests.exceptions.RequestException as err:
+        flash(f"Network error: {err}", "danger")
+        return redirect(url_for("company_bp.companies_view", company_id=company.id))
+    
+    data = response.json()
+    
+    # Only print the raw JSON if DEBUG_JSON is set to true.
+    if os.getenv("DEBUG_JSON", "false").lower() == "true":
+        print("DEBUG: Raw PSC Data:")
+        print(data)
+    
+    psc_list = data.get("items", [])
+    
+    if not psc_list:
+        flash("No PSC data returned from Companies House.", "warning")
+        return redirect(url_for("company_bp.companies_view", company_id=company.id))
+    
+    # Define UK countries.
+    uk_countries = ['england', 'scotland', 'wales', 'northern ireland']
+    
+    for psc in psc_list:
+        # Skip if the PSC is inactive.
+        if psc.get("ceased") or psc.get("ceased_on"):
+            continue
+        
+        # Use notified_on as effective date.
+        notified_on = psc.get("notified_on")
+        effective_date = None
+        if notified_on:
+            try:
+                effective_date = datetime.strptime(notified_on, "%Y-%m-%d").date()
+            except ValueError:
+                effective_date = None
+
+        # Extract natures_of_control (list) and join into a string.
+        natures = psc.get("natures_of_control", [])
+        control_details = ", ".join(natures) if natures else None
+
+        psc_kind = psc.get("kind", "").lower()
+        psc_entity_type = None
+        psc_entity_id = None
+        
+        if "corporate-entity" in psc_kind:
+            psc_name = psc.get("name")
+            identification = psc.get("identification", {})
+            reg_number = identification.get("registration_number", "")
+            country_registered = identification.get("country_registered", "").lower()
+            if country_registered in uk_countries:
+                try:
+                    psc_reg_numeric = int(reg_number.lstrip("0"))
+                except ValueError:
+                    psc_reg_numeric = None
+                psc_company = None
+                if psc_reg_numeric is not None:
+                    all_companies = Company.query.all()
+                    for comp in all_companies:
+                        try:
+                            comp_reg_numeric = int(comp.company_number.lstrip("0"))
+                        except ValueError:
+                            comp_reg_numeric = None
+                        if comp_reg_numeric is not None and comp_reg_numeric == psc_reg_numeric:
+                            psc_company = comp
+                            break
+                if not psc_company:
+                    psc_company = Company(name=psc_name, company_number=reg_number)
+                    db.session.add(psc_company)
+                    db.session.flush()
+                psc_entity_type = "company"
+                psc_entity_id = psc_company.id
+            else:
+                psc_entity_type = "person"
+                psc_person = Person.query.filter_by(full_name=psc.get("name")).first()
+                if not psc_person:
+                    psc_person = Person(full_name=psc.get("name"))
+                    db.session.add(psc_person)
+                    db.session.flush()
+                psc_entity_id = psc_person.id            
+        else:
+            # For individual PSC, try to get details from "individual_person"; if not, use top-level "name".
+            individual = psc.get("individual_person")
+            if individual and individual.get("name"):
+                psc_name = individual.get("name")
+            else:
+                psc_name = psc.get("name")
+            if not psc_name:
+                continue
+            psc_entity_type = "person"
+            psc_person = Person.query.filter_by(full_name=psc_name).first()
+            if not psc_person:
+                psc_person = Person(full_name=psc_name)
+                db.session.add(psc_person)
+                db.session.flush()
+            psc_entity_id = psc_person.id
+        
+        # Map to relationship type "PSC"
+        rel_type_name = "PSC"
+        rel_type = RelationshipType.query.filter_by(name=rel_type_name).first()
+        if not rel_type:
+            rel_type = RelationshipType(name=rel_type_name)
+            db.session.add(rel_type)
+            db.session.flush()
+        
+        # Create or update the relationship: Person is source, Company is target.
+        existing_rel = Relationship.query.filter_by(
+            relationship_type_id=rel_type.id,
+            source_type=psc_entity_type, source_id=psc_entity_id,
+            target_type="company", target_id=company.id
+        ).first()
+        if existing_rel:
+            existing_rel.effective_date = effective_date
+            rel_obj = existing_rel
+        else:
+            new_rel = Relationship(
+                relationship_type_id=rel_type.id,
+                source_type=psc_entity_type,
+                source_id=psc_entity_id,
+                target_type="company",
+                target_id=company.id,
+                effective_date=effective_date
+            )
+            db.session.add(new_rel)
+            db.session.flush()
+            rel_obj = new_rel
+        
+        # For the PSC relationship, add/update a relationship attribute for control details.
+        if control_details:
+            # Try to find an existing attribute with key "control".
+            existing_attr = None
+            for attr in rel_obj.attributes:
+                if attr.key.lower() == "control":
+                    existing_attr = attr
+                    break
+            if existing_attr:
+                existing_attr.value = control_details
+            else:
+                new_attr = RelationshipAttribute(
+                    relationship_id=rel_obj.id,
+                    key="control",
+                    value=control_details
+                )
+                db.session.add(new_attr)
+    
+    try:
+        db.session.commit()
+        flash("PSC data updated successfully.", "success")
     except IntegrityError as e:
         db.session.rollback()
         flash(f"Database error: {e}", "danger")

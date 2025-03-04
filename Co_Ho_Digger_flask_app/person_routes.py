@@ -56,6 +56,18 @@ def persons_delete(person_id):
 @person_bp.route("/persons/<int:person_id>/view")
 def persons_view(person_id):
     person = Person.query.get_or_404(person_id)
+    
+    # Get all persons sorted alphabetically by full_name
+    all_persons = Person.query.order_by(Person.full_name.asc()).all()
+    current_index = None
+    for idx, p in enumerate(all_persons):
+        if p.id == person.id:
+            current_index = idx
+            break
+    previous_person = all_persons[current_index - 1] if current_index and current_index > 0 else None
+    next_person = all_persons[current_index + 1] if current_index is not None and current_index < len(all_persons) - 1 else None
+
+    
     # Get relationships where this person is source or target
     relationships_source = Relationship.query.filter_by(source_type="person", source_id=person.id).all()
     relationships_target = Relationship.query.filter_by(target_type="person", target_id=person.id).all()
@@ -96,4 +108,4 @@ def persons_view(person_id):
             "attributes": attributes_str
         })
 
-    return render_template("persons_view.html", person=person, relationships=display_data)
+    return render_template("persons_view.html", person=person, relationships=display_data, previous_person=previous_person, next_person=next_person)
