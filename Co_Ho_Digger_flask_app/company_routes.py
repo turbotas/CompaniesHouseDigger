@@ -1,9 +1,10 @@
 # my_flask_app/company_routes.py
 
 from flask import flash, Blueprint, render_template, request, redirect, url_for
-from .models import db, Company, Relationship, Person
+from .models import db, Company, Relationship, Person, Relationship, RelationshipType
 import requests
 import os
+from datetime import datetime
 from sqlalchemy.exc import IntegrityError
 
 
@@ -166,37 +167,142 @@ def dig_company():
 @company_bp.route("/companies/<int:company_id>/view")
 def companies_view(company_id):
     company = Company.query.get_or_404(company_id)
+    
+    # Get all companies sorted by name (alphabetically)
+    all_companies = Company.query.order_by(Company.name.asc()).all()
+    current_index = None
+    for idx, comp in enumerate(all_companies):
+        if comp.id == company.id:
+            current_index = idx
+            break
+    previous_company = all_companies[current_index - 1] if current_index and current_index > 0 else None
+    next_company = all_companies[current_index + 1] if current_index is not None and current_index < len(all_companies) - 1 else None
+
+    # Existing relationships logic remains unchanged.
     relationships_source = Relationship.query.filter_by(source_type="company", source_id=company.id).all()
     relationships_target = Relationship.query.filter_by(target_type="company", target_id=company.id).all()
     all_relationships = relationships_source + relationships_target
-
     display_data = []
     for r in all_relationships:
-        # Use the name attribute explicitly:
-        rtype = r.relationship_type.name if r.relationship_type and r.relationship_type.name else "Unknown"
-
+        rtype = r.relationship_type.name if r.relationship_type else "Unknown"
         if r.source_type.lower() == "company":
             source_obj = Company.query.get(r.source_id)
             source_display = f"{source_obj.name} ({source_obj.company_number})" if source_obj else "Unknown Company"
         else:
             source_obj = Person.query.get(r.source_id)
             source_display = source_obj.full_name if source_obj else "Unknown Person"
-
         if r.target_type.lower() == "company":
             target_obj = Company.query.get(r.target_id)
             target_display = f"{target_obj.name} ({target_obj.company_number})" if target_obj else "Unknown Company"
         else:
             target_obj = Person.query.get(r.target_id)
             target_display = target_obj.full_name if target_obj else "Unknown Person"
-
         attributes_str = ", ".join([f"{attr.key}: {attr.value}" for attr in r.attributes]) if r.attributes else "N/A"
-
+        effective_date_str = r.effective_date.isoformat() if r.effective_date else "N/A"
         display_data.append({
             "id": r.id,
             "relationship_type": rtype,
             "source_display": source_display,
             "target_display": target_display,
-            "effective_date": r.effective_date.isoformat() if r.effective_date else "N/A",
+            "effective_date": effective_date_str,
             "attributes": attributes_str
         })
-    return render_template("companies_view.html", company=company, relationships=display_data)
+
+    return render_template("companies_view.html", company=company, relationships=display_data,
+                           previous_company=previous_company, next_company=next_company)
+
+@company_bp.route("/companies/<int:company_id>/update_officers", methods=["POST"])
+def update_officers(company_id):
+    company = Company.query.get_or_404(company_id)
+    
+    api_key = os.getenv("COMPANIES_HOUSE_API_KEY")
+    if not api_key:
+        flash("Companies House API key is not configured.", "danger")
+        return redirect(url_for("company_bp.companies_view", company_id=company.id))
+    
+    officers_url = f"https://api.company-information.service.gov.uk/company/{company.company_number}/officers"
+    
+    try:
+        response = requests.get(officers_url, auth=(api_key, ""))
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        flash(f"Error fetching officers: {err}", "danger")
+        return redirect(url_for("company_bp.companies_view", company_id=company.id))
+    except requests.exceptions.RequestException as err:
+        flash(f"Network error: {err}", "danger")
+        return redirect(url_for("company_bp.companies_view", company_id=company.id))
+    
+    data = response.json()
+    officers_list = data.get("items", [])
+    
+    for officer in officers_list:
+        # Skip if officer has resigned
+        if officer.get("resigned_on"):
+            continue
+        
+        officer_name = officer.get("name")
+        officer_role = officer.get("officer_role")  # e.g., "director", "secretary"
+        appointed_on = officer.get("appointed_on")
+        
+        if not officer_name:
+            continue
+
+        # Find or create Person record for the officer.
+        person = Person.query.filter_by(full_name=officer_name).first()
+        if not person:
+            person = Person(full_name=officer_name)
+            db.session.add(person)
+            db.session.flush()  # Assign ID
+        
+        # Determine relationship type based on officer_role
+        rel_type_name = None
+        if officer_role and "director" in officer_role.lower():
+            rel_type_name = "Director"
+        elif officer_role and "secretary" in officer_role.lower():
+            rel_type_name = "Secretary"
+        else:
+            continue  # Skip roles we don't handle
+        
+        rel_type = RelationshipType.query.filter_by(name=rel_type_name).first()
+        if not rel_type:
+            rel_type = RelationshipType(name=rel_type_name)
+            db.session.add(rel_type)
+            db.session.flush()
+        
+        # Now, create or update the relationship such that:
+        #   - Source: Person (officer)
+        #   - Target: Company (the one we're viewing)
+        existing_rel = Relationship.query.filter_by(
+            relationship_type_id=rel_type.id,
+            source_type="person", source_id=person.id,
+            target_type="company", target_id=company.id
+        ).first()
+        
+        effective_date = None
+        if appointed_on:
+            try:
+                effective_date = datetime.strptime(appointed_on, "%Y-%m-%d").date()
+            except ValueError:
+                effective_date = None
+
+        if existing_rel:
+            existing_rel.effective_date = effective_date
+        else:
+            new_rel = Relationship(
+                relationship_type_id=rel_type.id,
+                source_type="person",  # now person is the source
+                source_id=person.id,
+                target_type="company",  # company is the target
+                target_id=company.id,
+                effective_date=effective_date
+            )
+            db.session.add(new_rel)
+    
+    try:
+        db.session.commit()
+        flash("Officers updated successfully.", "success")
+    except IntegrityError as e:
+        db.session.rollback()
+        flash(f"Database error: {e}", "danger")
+    
+    return redirect(url_for("company_bp.companies_view", company_id=company.id))
