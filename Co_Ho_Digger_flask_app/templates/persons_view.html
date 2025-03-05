@@ -23,8 +23,38 @@
       {% for r in relationships %}
       <tr>
         <td>{{ r.relationship_type }}</td>
-        <td>{{ r.source_display }}</td>
-        <td>{{ r.target_display }}</td>
+        <!-- Source Cell -->
+        <td>
+          {% if r.source_type|lower == "company" %}
+            <a href="{{ url_for('company_bp.companies_view', company_id=r.source_id) }}"
+               class="text-decoration-none text-reset">
+              {{ r.source_display }}
+            </a>
+          {% elif r.source_type|lower == "person" %}
+            <a href="{{ url_for('person_bp.persons_view', person_id=r.source_id) }}"
+               class="text-decoration-none text-reset">
+              {{ r.source_display }}
+            </a>
+          {% else %}
+            {{ r.source_display }}
+          {% endif %}
+        </td>
+        <!-- Target Cell -->
+        <td>
+          {% if r.target_type|lower == "company" %}
+            <a href="{{ url_for('company_bp.companies_view', company_id=r.target_id) }}"
+               class="text-decoration-none text-reset">
+              {{ r.target_display }}
+            </a>
+          {% elif r.target_type|lower == "person" %}
+            <a href="{{ url_for('person_bp.persons_view', person_id=r.target_id) }}"
+               class="text-decoration-none text-reset">
+              {{ r.target_display }}
+            </a>
+          {% else %}
+            {{ r.target_display }}
+          {% endif %}
+        </td>
         <td>{{ r.effective_date }}</td>
         <td>{{ r.attributes }}</td>
       </tr>
@@ -52,7 +82,7 @@
 <hr>
 <!-- Convert Person to Company Section -->
 <div class="mt-4">
-  <h4>Convert this Person/Non UK companmy to a UK Company</h4>
+  <h4>Convert this Person/non UK co to a UK co</h4>
   <form method="POST" action="{{ url_for('person_bp.convert_person_to_company', person_id=person.id) }}">
     <div class="mb-3">
       <label for="new_company_number" class="form-label">Enter Company Number:</label>

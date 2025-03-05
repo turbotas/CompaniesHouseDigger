@@ -1,40 +1,57 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h2>All Relationships</h2>
-  <a href="{{ url_for('relationship_bp.relationships_new') }}" class="btn btn-primary">Add New Relationship</a>
-</div>
-
-{% if relationships|length == 0 %}
-  <div class="alert alert-warning">No relationships found.</div>
-{% else %}
-  <table class="table table-striped">
-    <thead>
-      <tr>
-        <th>Relationship Type</th>
-        <th>Source</th>
-        <th>Target</th>
-        <th>Effective Date</th>
-        <th>Attributes</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for r in relationships %}
-      <tr>
-        <td>{{ r.relationship_type }}</td>
-        <td>{{ r.source_display }}</td>
-        <td>{{ r.target_display }}</td>
-        <td>{{ r.effective_date }}</td>
-        <td>{{ r.attributes }}</td>
-        <td>
-          <form action="{{ url_for('relationship_bp.relationships_delete', rel_id=r.id) }}" method="POST" style="display:inline-block;">
-            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this relationship?');">Delete</button>
-          </form>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-{% endif %}
+<h2>All Relationships</h2>
+<a href="{{ url_for('relationship_bp.relationships_new') }}" class="btn btn-primary mb-3">Add New Relationship</a>
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Relationship Type</th>
+      <th>Source</th>
+      <th>Target</th>
+      <th>Effective Date</th>
+      <th>Attributes</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in relationships %}
+    <tr>
+      <td>{{ r.relationship_type }}</td>
+      <td>
+        {% if r.source_type|lower == "company" %}
+          <a href="{{ url_for('company_bp.companies_view', company_id=r.source_id) }}" class="text-decoration-none text-reset">
+            {{ r.source_display }}
+          </a>
+        {% elif r.source_type|lower == "person" %}
+          <a href="{{ url_for('person_bp.persons_view', person_id=r.source_id) }}" class="text-decoration-none text-reset">
+            {{ r.source_display }}
+          </a>
+        {% else %}
+          {{ r.source_display }}
+        {% endif %}
+      </td>
+      <td>
+        {% if r.target_type|lower == "company" %}
+          <a href="{{ url_for('company_bp.companies_view', company_id=r.target_id) }}" class="text-decoration-none text-reset">
+            {{ r.target_display }}
+          </a>
+        {% elif r.target_type|lower == "person" %}
+          <a href="{{ url_for('person_bp.persons_view', person_id=r.target_id) }}" class="text-decoration-none text-reset">
+            {{ r.target_display }}
+          </a>
+        {% else %}
+          {{ r.target_display }}
+        {% endif %}
+      </td>
+      <td>{{ r.effective_date }}</td>
+      <td>{{ r.attributes }}</td>
+      <td>
+        <form action="{{ url_for('relationship_bp.relationships_delete', rel_id=r.id) }}" method="POST" style="display:inline-block;">
+          <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this relationship?');">Delete</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
 {% endblock %}

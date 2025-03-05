@@ -24,9 +24,8 @@
   <tbody>
     {% for person in persons %}
     <tr>
-      <td>{{ person.full_name }}</td>
+	  <td><a href="{{ url_for('person_bp.persons_view', person_id=person.id) }}" class="text-decoration-none text-reset">{{ person.full_name }}</a></td>
       <td>
-        <a href="{{ url_for('person_bp.persons_view', person_id=person.id) }}" class="btn btn-sm btn-info">View</a>
         <a href="{{ url_for('person_bp.persons_edit', person_id=person.id) }}" class="btn btn-sm btn-secondary">Edit</a>
         <form action="{{ url_for('person_bp.persons_delete', person_id=person.id) }}" method="POST" style="display:inline-block;">
           <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this person?');">Delete</button>

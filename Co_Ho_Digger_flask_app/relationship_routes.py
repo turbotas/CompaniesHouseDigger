@@ -37,12 +37,17 @@ def relationships_list():
             "id": r.id,
             "relationship_type": rtype,
             "source_display": source_display,
+            "source_type": r.source_type,    # corrected
+            "source_id": r.source_id,          # corrected
             "target_display": target_display,
+            "target_type": r.target_type,      # corrected
+            "target_id": r.target_id,          # corrected
             "effective_date": r.effective_date.isoformat() if r.effective_date else "N/A",
             "attributes": attributes_str
         })
 
     return render_template("relationships_list.html", relationships=display_data)
+
 
 
 @relationship_bp.route("/relationships/new", methods=["GET", "POST"])

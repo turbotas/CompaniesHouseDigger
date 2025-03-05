@@ -39,14 +39,15 @@
   <tbody>
     {% for company in companies %}
     <tr>
-      <td>{{ company.name }}</td>
+      <td><a href="{{ url_for('company_bp.companies_view', company_id=company.id) }}" class="text-decoration-none text-reset">{{ company.name }}</a></td>
       <td>{{ company.company_number }}</td>
       <td>
-        <a href="{{ url_for('company_bp.companies_view', company_id=company.id) }}" class="btn btn-sm btn-info">View</a>
         <a href="{{ url_for('company_bp.companies_edit', company_id=company.id) }}" class="btn btn-sm btn-secondary">Edit</a>
         <form action="{{ url_for('company_bp.companies_delete', company_id=company.id) }}" method="POST" style="display:inline-block;">
           <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this company?');">Delete</button>
         </form>
+		        <!-- CH Button: opens Companies House company view in a new tab -->
+        <a href="https://find-and-update.company-information.service.gov.uk/company/{{ company.company_number }}" target="_blank" class="btn btn-sm btn-outline-secondary">CH</a>
       </td>
     </tr>
     {% endfor %}

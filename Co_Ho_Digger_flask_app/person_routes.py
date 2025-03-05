@@ -115,7 +115,11 @@ def persons_view(person_id):
             "id": r.id,
             "relationship_type": rtype,
             "source_display": source_display,
+            "source_type": r.source_type,
+            "source_id": r.source_id,
             "target_display": target_display,
+            "target_type": r.target_type,
+            "target_id": r.target_id,
             "effective_date": effective_date_str,
             "attributes": attributes_str
         })
