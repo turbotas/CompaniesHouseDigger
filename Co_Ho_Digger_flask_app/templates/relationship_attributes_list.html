@@ -5,18 +5,17 @@
 <table class="table table-striped">
   <thead>
     <tr>
-      <th>ID</th>
-      <th>Relationship ID</th>
+      <th>Relationship</th>
       <th>Key</th>
       <th>Value</th>
       <th>Actions</th>
     </tr>
   </thead>
   <tbody>
-    {% for attr in attributes %}
+    {% for item in attributes %}
+      {% set attr = item.attribute %}
     <tr>
-      <td>{{ attr.id }}</td>
-      <td>{{ attr.relationship_id }}</td>
+      <td>{{ item.relationship_display }}</td>
       <td>{{ attr.key }}</td>
       <td>{{ attr.value }}</td>
       <td>
