@@ -49,9 +49,21 @@ def persons_edit(person_id):
 @person_bp.route("/persons/<int:person_id>/delete", methods=["POST"])
 def persons_delete(person_id):
     person = Person.query.get_or_404(person_id)
+    
+    # Delete any relationships where this person is the source.
+    rels_as_source = Relationship.query.filter_by(source_type="person", source_id=person.id).all()
+    # Delete any relationships where this person is the target.
+    rels_as_target = Relationship.query.filter_by(target_type="person", target_id=person.id).all()
+    all_relationships = rels_as_source + rels_as_target
+    for rel in all_relationships:
+        db.session.delete(rel)
+    
+    # Delete the person.
     db.session.delete(person)
     db.session.commit()
+    
     return redirect(url_for("person_bp.persons_list"))
+
 
 @person_bp.route("/persons/<int:person_id>/view")
 def persons_view(person_id):

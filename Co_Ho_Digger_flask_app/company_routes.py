@@ -83,8 +83,23 @@ def companies_edit(company_id):
 @company_bp.route("/companies/<int:company_id>/delete", methods=["POST"])
 def companies_delete(company_id):
     company = Company.query.get_or_404(company_id)
+    
+    # Query relationships where this company is the source.
+    rels_as_source = Relationship.query.filter_by(source_type="company", source_id=company.id).all()
+    # Query relationships where this company is the target.
+    rels_as_target = Relationship.query.filter_by(target_type="company", target_id=company.id).all()
+    
+    # Combine the lists.
+    all_relationships = rels_as_source + rels_as_target
+    
+    # Delete each relationship.
+    for rel in all_relationships:
+        db.session.delete(rel)
+    
+    # Delete the company record.
     db.session.delete(company)
     db.session.commit()
+    
     return redirect(url_for("company_bp.companies_list"))
 
 @company_bp.route("/companies/dig", methods=["GET", "POST"])
