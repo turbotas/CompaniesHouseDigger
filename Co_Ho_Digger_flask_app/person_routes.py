@@ -1,6 +1,6 @@
 # my_flask_app/person_routes.py
 
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, render_template, request, redirect, url_for, flash
 from .models import db, Person, Relationship, Company
 
 person_bp = Blueprint("person_bp", __name__, template_folder="templates")
@@ -121,3 +121,54 @@ def persons_view(person_id):
         })
 
     return render_template("persons_view.html", person=person, relationships=display_data, previous_person=previous_person, next_person=next_person)
+    
+@person_bp.route("/persons/<int:person_id>/convert_to_company", methods=["POST"])
+def convert_person_to_company(person_id):
+    # Get the person record to be converted
+    person = Person.query.get_or_404(person_id)
+    
+    # Get the company number from the form
+    new_company_number = request.form.get("new_company_number", "").strip()
+    if not new_company_number:
+        flash("Please provide a company number.", "warning")
+        return redirect(url_for("person_bp.persons_view", person_id=person_id))
+    
+    # Check if a company with this number exists
+    company = Company.query.filter_by(company_number=new_company_number).first()
+    if not company:
+        # Create a new company record using the person's name
+        company = Company(
+            name=person.full_name,
+            company_number=new_company_number,
+            registered_address="N/A",  # you can adjust default values as needed
+            company_status="Active",
+            incorporation_date=None
+        )
+        db.session.add(company)
+        db.session.flush()  # assign an ID
+
+    # Update any relationships where this person is involved.
+    # For relationships where person is source:
+    relationships_as_source = Relationship.query.filter_by(source_type="person", source_id=person.id).all()
+    for rel in relationships_as_source:
+        rel.source_type = "company"
+        rel.source_id = company.id
+
+    # For relationships where person is target:
+    relationships_as_target = Relationship.query.filter_by(target_type="person", target_id=person.id).all()
+    for rel in relationships_as_target:
+        rel.target_type = "company"
+        rel.target_id = company.id
+
+    # Delete the person record.
+    db.session.delete(person)
+    
+    try:
+        db.session.commit()
+        flash("Person successfully converted to company.", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error during conversion: {e}", "danger")
+        return redirect(url_for("person_bp.persons_view", person_id=person_id))
+    
+    return redirect(url_for("company_bp.companies_view", company_id=company.id))

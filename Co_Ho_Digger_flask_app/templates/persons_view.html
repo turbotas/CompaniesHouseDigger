@@ -48,4 +48,17 @@
     </a>
   {% endif %}
 </div>
+
+<hr>
+<!-- Convert Person to Company Section -->
+<div class="mt-4">
+  <h4>Convert this Person/Non UK companmy to a UK Company</h4>
+  <form method="POST" action="{{ url_for('person_bp.convert_person_to_company', person_id=person.id) }}">
+    <div class="mb-3">
+      <label for="new_company_number" class="form-label">Enter Company Number:</label>
+      <input type="text" class="form-control" name="new_company_number" id="new_company_number" placeholder="e.g., 12345678" required>
+    </div>
+    <button type="submit" class="btn btn-warning">Convert to Company</button>
+  </form>
+</div>
 {% endblock %}
