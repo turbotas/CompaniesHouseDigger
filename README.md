@@ -1,6 +1,6 @@
 # Companies House Digger
 
-Companies House Digger is a Flask-based web application for mining and visualizing company data from the UK’s Companies House. It supports CRUD operations for companies, persons, and their relationships, as well as an interactive network visualization using Vis.js.  It has one click process for getting Director and Persons with Significasnt control information and including it in the model.
+Companies House Digger is a Flask-based web application for mining and visualizing company data from the UK’s Companies House. It supports CRUD operations for companies, persons, and their relationships, as well as an interactive network visualization using Vis.js.  It has one click process for getting Director and Persons with Significant control information and including it in the model.  I built this while trying to understand the 'simple' structure of my local 'water' company.
 
 ## Features
 
