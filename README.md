@@ -44,13 +44,14 @@ Company Details
 Network View
 
 ## Limitations and Bugs
-Non-UK companies are stored as persosns.
-Companies House data is very dirty so the same person or company may appear many times with minor differences.
-Fixing relationships is tricky.
-Adding relationships manually is time consuming.
-
+  - **Non-UK companies** are stored as persons.
+  - **Companies House data** is very dirty so the same person or company may appear many times with minor differences.
+  - **Fixing relationships** is tricky.
+  - **Adding relationships** manually is time consuming.
+  - **Database** is currently jsut configued as sqlite - it may not perform if you try to model anything large.
+  - **No Security** testing has been carried out on this application.  Always assume it's trying to kill you.
+ 
 ## To-Do
-Automatically grab and process shareholders.
-Automatically grab and process accounts.
-Include links back to CH.
-
+  - **Shareholders** Automatically grab and process shareholder information from CH.
+  - **Accounts** Automatically grab and process company accounts accounts.
+  - **Links** Include Links back to CH
