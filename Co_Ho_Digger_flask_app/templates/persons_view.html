@@ -72,6 +72,16 @@
     </a>
   {% endif %}
   <a href="{{ url_for('person_bp.persons_list') }}" class="btn btn-secondary">Back to Persons</a>
+  <!-- New Edit Person Button -->
+  <a href="{{ url_for('person_bp.persons_edit', person_id=person.id) }}" class="btn btn-info">
+    Edit Person
+  </a>
+  <!-- New Delete Person Button (within a form for POST) -->
+  <form action="{{ url_for('person_bp.persons_delete', person_id=person.id) }}" method="POST" style="display:inline;">
+    <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this person?');">
+      Delete Person
+    </button>
+  </form>
   {% if next_person %}
     <a href="{{ url_for('person_bp.persons_view', person_id=next_person.id) }}" class="btn btn-outline-primary">
       Next Person &raquo;

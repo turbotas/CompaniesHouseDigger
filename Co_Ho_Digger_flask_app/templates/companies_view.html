@@ -80,11 +80,22 @@
       &laquo; Previous Company
     </a>
   {% endif %}
-  <a href="{{ url_for('company_bp.companies_list') }}" class="btn btn-secondary">Back to Companies</a>  
+  <a href="{{ url_for('company_bp.companies_list') }}" class="btn btn-secondary">Back to Companies</a>
+  <!-- New Edit Company Button -->
+  <a href="{{ url_for('company_bp.companies_edit', company_id=company.id) }}" class="btn btn-info">
+    Edit Company
+  </a>
+  <!-- New Delete Company Button (within a form for POST) -->
+  <form action="{{ url_for('company_bp.companies_delete', company_id=company.id) }}" method="POST" style="display:inline;">
+    <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this company?');">
+      Delete Company
+    </button>
+  </form>
   {% if next_company %}
     <a href="{{ url_for('company_bp.companies_view', company_id=next_company.id) }}" class="btn btn-outline-primary">
       Next Company &raquo;
     </a>
   {% endif %}
 </div>
+
 {% endblock %}
