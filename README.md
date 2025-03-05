@@ -45,12 +45,12 @@ Network View
 
 ## Limitations and Bugs
 Non-UK companies are stored as persosns.
-Companies House data is very dirty so the same person or company may appear many times with minor differences
-Fixing relationships is tricky
+Companies House data is very dirty so the same person or company may appear many times with minor differences.
+Fixing relationships is tricky.
 Adding relationships manually is time consuming.
 
 ## To-Do
-Automatically grab and process shareholders
-Automatically grab and process accounts
-Include links back to CH
+Automatically grab and process shareholders.
+Automatically grab and process accounts.
+Include links back to CH.
 
