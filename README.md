@@ -54,4 +54,3 @@ Network View
 ## To-Do
   - **Shareholders** Automatically grab and process shareholder information from CH.
   - **Accounts** Automatically grab and process company accounts accounts.
-  - **Links** Include Links back to CH
