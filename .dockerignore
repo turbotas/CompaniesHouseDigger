@@ -1,9 +1,12 @@
-venv/
 __pycache__/
 *.pyc
 *.pyo
-.DS_Store
-.env
-localdev.db
+*.pyd
+*.db
+*.sqlite3
+.git
+.venv/
+*.log
+node_modules/
 companieshousedigger.tar
 .idea/
