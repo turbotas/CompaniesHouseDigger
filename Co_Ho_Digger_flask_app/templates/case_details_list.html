@@ -15,15 +15,24 @@
       {% for detail in details %}
       <tr>
         <td>
-          <a href="{{ url_for('company_bp.companies_view', company_id=detail.company.id) }}"
-             class="text-decoration-none text-reset">
-            {{ detail.company.name }}
-          </a>
+          {% if detail.company %}
+            <a href="{{ url_for('company_bp.companies_view', company_id=detail.company.id) }}"
+               class="text-decoration-none text-reset">
+              {{ detail.company.name }}
+            </a>
+          {% else %}
+            N/A
+          {% endif %}
         </td>
-        <td>{{ detail.company.company_number }}</td>
         <td>
-          <form action="{{ url_for('case_detail_bp.details_delete', case_id=case.id, detail_id=detail.id) }}"
-                method="POST" style="display:inline;">
+          {% if detail.company %}
+            {{ detail.company.company_number }}
+          {% else %}
+            N/A
+          {% endif %}
+        </td>
+        <td>
+          <form action="{{ url_for('case_detail_bp.details_delete', case_id=case.id, detail_id=detail.id) }}" method="POST" style="display:inline;">
             <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this detail?');">
               Delete
             </button>

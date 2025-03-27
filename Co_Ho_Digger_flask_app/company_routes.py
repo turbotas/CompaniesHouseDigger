@@ -19,38 +19,37 @@ def companies_list():
     order = request.args.get('order', 'asc')    # default ascending
     case_filter = request.args.get('case_filter', 'off')  # "on" or "off"
 
-    # Check if a case is currently selected in session.
-    current_case = session.get('current_case_id')
+    current_case_id = session.get('current_case_id')
 
     query = Company.query
-
-    # If a case is selected and case_filter is "on", filter companies.
-    if current_case and case_filter == "on":
-        # Join with CaseDetail and filter by the current case.
+    # If a case is selected and case_filter is "on", only show companies in that case.
+    if current_case_id and case_filter == "on":
         query = query.join(CaseDetail, Company.id == CaseDetail.company_id)\
-                     .filter(CaseDetail.case_id == current_case)\
+                     .filter(CaseDetail.case_id == current_case_id)\
                      .distinct()
 
-    # Sorting logic
     if sort == 'name':
-        if order == 'asc':
-            query = query.order_by(Company.name.asc())
-        else:
-            query = query.order_by(Company.name.desc())
+        query = query.order_by(Company.name.asc() if order == 'asc' else Company.name.desc())
     elif sort == 'company_number':
-        if order == 'asc':
-            query = query.order_by(Company.company_number.asc())
-        else:
-            query = query.order_by(Company.company_number.desc())
+        query = query.order_by(Company.company_number.asc() if order == 'asc' else Company.company_number.desc())
     else:
         query = query.order_by(Company.name.asc())
 
     companies = query.all()
-    return render_template("companies_list.html", companies=companies, sort=sort, order=order, case_filter=case_filter)
+
+    # If a case is selected, build a set of company IDs already associated with the current case.
+    case_company_ids = set()
+    if current_case_id:
+        details = CaseDetail.query.filter_by(case_id=current_case_id).all()
+        case_company_ids = {detail.company_id for detail in details}
+
+    return render_template("companies_list.html", companies=companies, sort=sort, order=order,
+                           case_filter=case_filter, case_company_ids=case_company_ids)
 
 
 @company_bp.route("/companies/new", methods=["GET", "POST"])
 def companies_new():
+    from flask import session  # Import session here if not already imported
     if request.method == "POST":
         name = request.form.get("name")
         company_number = request.form.get("company_number")
@@ -81,9 +80,27 @@ def companies_new():
             db.session.rollback()
             flash("A company with that number already exists.", "danger")
             return render_template("companies_new.html", name=name, company_number=company_number)
+
+        # If a case is currently selected, add a CaseDetail entry.
+        current_case_id = session.get("current_case_id")
+        if current_case_id:
+            from .models import CaseDetail  # Ensure CaseDetail is imported
+            # Check if the company is not already linked to the case.
+            existing_detail = CaseDetail.query.filter_by(case_id=current_case_id, company_id=new_company.id).first()
+            if not existing_detail:
+                new_detail = CaseDetail(case_id=current_case_id, company_id=new_company.id)
+                db.session.add(new_detail)
+                db.session.commit()  # Commit the new case detail
+                flash("New company created and added to the current case.", "success")
+            else:
+                flash("New company created.", "success")
+        else:
+            flash("New company created.", "success")
+
         return redirect(url_for("company_bp.companies_list"))
 
     return render_template("companies_new.html")
+
 
 @company_bp.route("/companies/<int:company_id>/edit", methods=["GET", "POST"])
 def companies_edit(company_id):
@@ -117,6 +134,7 @@ def companies_delete(company_id):
     
     return redirect(url_for("company_bp.companies_list"))
 
+
 @company_bp.route("/companies/dig", methods=["GET", "POST"])
 def dig_company():
     if request.method == "POST":
@@ -142,19 +160,18 @@ def dig_company():
             return render_template("dig_company_form.html")
 
         data = response.json()
-        
+
         # Only print the raw JSON if DEBUG_JSON is set to true.
         if os.getenv("DEBUG_JSON", "false").lower() == "true":
             print("DEBUG: Raw PSC Data:")
             print(data)
-        
+
         ch_company_name = data.get("company_name")
         if not ch_company_name:
             flash("No company name found in API response.", "danger")
             return render_template("dig_company_form.html")
 
-        # Optionally, extract more fields from the API response.
-        # For example, assume the API returns a nested "registered_office_address" object:
+        # Extract additional fields.
         address_parts = []
         reg_address = data.get("registered_office_address", {})
         for part in ["address_line_1", "address_line_2", "postal_code", "locality"]:
@@ -179,6 +196,7 @@ def dig_company():
             existing.company_status = company_status
             existing.incorporation_date = incorporation_date
             flash("Existing company updated with latest data.", "info")
+            company_record = existing
         else:
             new_company = Company(
                 name=ch_company_name,
@@ -189,6 +207,7 @@ def dig_company():
             )
             db.session.add(new_company)
             flash("New company added.", "success")
+            company_record = new_company
         try:
             db.session.commit()
         except IntegrityError:
@@ -196,9 +215,24 @@ def dig_company():
             flash("A company with that number already exists.", "danger")
             return render_template("dig_company_form.html")
 
+        # If a case is currently selected, add this company to the case details.
+        from flask import session  # ensure session is imported
+        current_case_id = session.get("current_case_id")
+        if current_case_id:
+            from .models import CaseDetail  # ensure CaseDetail is imported
+            # Check if the company is already linked to the current case.
+            existing_detail = CaseDetail.query.filter_by(case_id=current_case_id, company_id=company_record.id).first()
+            if not existing_detail:
+                new_detail = CaseDetail(case_id=current_case_id, company_id=company_record.id)
+                db.session.add(new_detail)
+                db.session.commit()
+                flash("New company created and added to the current case.", "success")
+            else:
+                flash("New company created.", "success")
         return redirect(url_for("company_bp.companies_list"))
 
     return render_template("dig_company_form.html")
+
 
 @company_bp.route("/companies/<int:company_id>/view")
 def companies_view(company_id):

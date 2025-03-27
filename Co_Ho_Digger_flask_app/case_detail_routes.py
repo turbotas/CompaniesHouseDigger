@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from .models import db, Case, Company, CaseDetail
 
 case_detail_bp = Blueprint("case_detail_bp", __name__, template_folder="templates")
@@ -43,3 +43,39 @@ def details_delete(case_id, detail_id):
     db.session.commit()
     flash("Case detail deleted.", "info")
     return redirect(url_for("case_detail_bp.details_list", case_id=case_id))
+
+@case_detail_bp.route("/cases/current/add_company/<int:company_id>", methods=["POST"])
+def add_company_to_case(company_id):
+    from flask import request
+    current_case_id = session.get("current_case_id")
+    if not current_case_id:
+        flash("No case selected.", "warning")
+        return redirect(request.referrer or url_for("company_bp.companies_list"))
+    # Check if already exists.
+    existing = CaseDetail.query.filter_by(case_id=current_case_id, company_id=company_id).first()
+    if existing:
+        flash("Company already in the case.", "warning")
+    else:
+        new_detail = CaseDetail(case_id=current_case_id, company_id=company_id)
+        db.session.add(new_detail)
+        db.session.commit()
+        flash("Company added to case.", "success")
+    # Redirect back to the referring page to preserve query parameters.
+    return redirect(request.referrer or url_for("company_bp.companies_list"))
+
+@case_detail_bp.route("/cases/current/remove_company/<int:company_id>", methods=["POST"])
+def remove_company_from_case(company_id):
+    from flask import request
+    current_case_id = session.get("current_case_id")
+    if not current_case_id:
+        flash("No case selected.", "warning")
+        return redirect(request.referrer or url_for("company_bp.companies_list"))
+    detail = CaseDetail.query.filter_by(case_id=current_case_id, company_id=company_id).first()
+    if detail:
+        db.session.delete(detail)
+        db.session.commit()
+        flash("Company removed from case.", "success")
+    else:
+        flash("Company was not part of the case.", "warning")
+    # Redirect back to the referring page to preserve the filter state.
+    return redirect(request.referrer or url_for("company_bp.companies_list"))

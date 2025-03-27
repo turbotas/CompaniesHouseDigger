@@ -2,17 +2,17 @@
 {% block content %}
 <h2>UK Companies</h2>
 <a href="{{ url_for('company_bp.companies_new') }}" class="btn btn-primary mb-3">Add New Company</a>
-  {% if current_case %}
-    {% if case_filter == 'on' %}
-      <a href="{{ url_for('company_bp.companies_list', case_filter='off', sort=sort, order=order) }}" class="btn btn-outline-secondary mb-3">
-        Case Filter Off
-      </a>
-    {% else %}
-      <a href="{{ url_for('company_bp.companies_list', case_filter='on', sort=sort, order=order) }}" class="btn btn-outline-secondary mb-3">
-        Case Filter On
-      </a>
-    {% endif %}
+{% if current_case %}
+  {% if case_filter == 'on' %}
+    <a href="{{ url_for('company_bp.companies_list', case_filter='off', sort=sort, order=order) }}" class="btn btn-outline-secondary mb-3">
+      Case Filter Off
+    </a>
+  {% else %}
+    <a href="{{ url_for('company_bp.companies_list', case_filter='on', sort=sort, order=order) }}" class="btn btn-outline-secondary mb-3">
+      Case Filter On
+    </a>
   {% endif %}
+{% endif %}
 <table class="table table-striped">
   <thead>
     <tr>
@@ -59,6 +59,23 @@
         </form>
 		        <!-- CH Button: opens Companies House company view in a new tab -->
         <a href="https://find-and-update.company-information.service.gov.uk/company/{{ company.company_number }}" target="_blank" class="btn btn-sm btn-outline-secondary">CH</a>
+        {% if current_case %}
+            {% if company.id in case_company_ids %}
+              <!-- Remove from case button -->
+              <form action="{{ url_for('case_detail_bp.remove_company_from_case', company_id=company.id) }}" method="POST" style="display:inline;">
+                <button type="submit" class="btn btn-sm btn-warning">
+                  Remove from Case
+                </button>
+              </form>
+            {% else %}
+              <!-- Add to case button -->
+              <form action="{{ url_for('case_detail_bp.add_company_to_case', company_id=company.id) }}" method="POST" style="display:inline;">
+                <button type="submit" class="btn btn-sm btn-success">
+                  Add to Case
+                </button>
+              </form>
+            {% endif %}
+          {% endif %}
       </td>
     </tr>
     {% endfor %}
