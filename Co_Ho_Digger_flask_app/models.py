@@ -52,3 +52,29 @@ class RelationshipAttribute(db.Model):
     relationship_id = db.Column(db.Integer, db.ForeignKey('relationship.id'), nullable=False)
     key = db.Column(db.String(50), nullable=False)    # e.g. "shares"
     value = db.Column(db.String(200), nullable=False)   # e.g. "1000"
+
+class Case(db.Model):
+    __tablename__ = "case"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+
+    def __repr__(self):
+        return f"<Case {self.name}>"
+
+class CaseDetail(db.Model):
+    __tablename__ = "case_detail"
+    id = db.Column(db.Integer, primary_key=True)
+    case_id = db.Column(db.Integer, db.ForeignKey('case.id', ondelete="CASCADE"), nullable=False)
+    company_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=False)
+
+    # Optional: Add extra fields if needed, e.g. a role, notes, etc.
+    # role = db.Column(db.String(100))
+
+    # Relationships:
+    # - Backref on Case will allow us to get all associated details.
+    case = db.relationship("Case", backref=db.backref("details", cascade="all, delete-orphan"))
+    company = db.relationship("Company")
+
+    def __repr__(self):
+        return f"<CaseDetail case_id={self.case_id} company_id={self.company_id}>"

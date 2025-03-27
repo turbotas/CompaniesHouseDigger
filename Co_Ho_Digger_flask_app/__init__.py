@@ -1,6 +1,6 @@
 # my_flask_app/__init__.py
 
-from flask import Flask, render_template
+from flask import Flask, render_template, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate 
 from .models import db
@@ -10,6 +10,9 @@ from .relationship_type_routes import reltype_bp
 from .relationship_routes import relationship_bp
 from .network_routes import network_bp
 from .relationship_attribute_routes import relattr_bp
+from .case_routes import case_bp
+from .models import Case
+from .case_detail_routes import case_detail_bp
 
 import os
 
@@ -33,10 +36,20 @@ def create_app():
     app.register_blueprint(reltype_bp)
     app.register_blueprint(relationship_bp)
     app.register_blueprint(network_bp)
-    app.register_blueprint(relattr_bp)  # NEW
+    app.register_blueprint(relattr_bp)
+    app.register_blueprint(case_bp)
+    app.register_blueprint(case_detail_bp)
 
     @app.route("/")
     def home():
         return render_template("base.html")
+
+    @app.context_processor
+    def inject_current_case():
+        current_case = None
+        case_id = session.get('current_case_id')
+        if case_id:
+            current_case = Case.query.get(case_id)
+        return dict(current_case=current_case)
 
     return app

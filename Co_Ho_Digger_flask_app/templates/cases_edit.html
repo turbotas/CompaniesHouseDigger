@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Edit Case: {{ case.name }}</h2>
+<form method="POST" action="{{ url_for('case_bp.cases_edit', case_id=case.id) }}">
+  <div class="mb-3">
+    <label for="name" class="form-label">Case Name</label>
+    <input type="text" class="form-control" name="name" id="name" value="{{ case.name }}" required>
+  </div>
+  <div class="mb-3">
+    <label for="description" class="form-label">Case Description</label>
+    <textarea class="form-control" name="description" id="description" rows="4">{{ case.description }}</textarea>
+  </div>
+  <button type="submit" class="btn btn-success">Update Case</button>
+  <a href="{{ url_for('case_bp.cases_list') }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

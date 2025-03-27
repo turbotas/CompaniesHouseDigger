@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Add Company to Case: {{ case.name }}</h2>
+<form method="POST" action="{{ url_for('case_detail_bp.details_new', case_id=case.id) }}">
+  <div class="mb-3">
+    <label for="company_id" class="form-label">Select Company</label>
+    <select class="form-select" name="company_id" id="company_id" required>
+      <option value="">-- Select a Company --</option>
+      {% for company in companies %}
+        <option value="{{ company.id }}">{{ company.name }} ({{ company.company_number }})</option>
+      {% endfor %}
+    </select>
+  </div>
+  <button type="submit" class="btn btn-success">Add Company</button>
+  <a href="{{ url_for('case_detail_bp.details_list', case_id=case.id) }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

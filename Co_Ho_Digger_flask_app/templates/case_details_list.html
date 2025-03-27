@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Case Details for "{{ case.name }}"</h2>
+<a href="{{ url_for('case_detail_bp.details_new', case_id=case.id) }}" class="btn btn-primary mb-3">Add Company to Case</a>
+{% if details %}
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Company Name</th>
+        <th>Company Number</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for detail in details %}
+      <tr>
+        <td>
+          <a href="{{ url_for('company_bp.companies_view', company_id=detail.company.id) }}"
+             class="text-decoration-none text-reset">
+            {{ detail.company.name }}
+          </a>
+        </td>
+        <td>{{ detail.company.company_number }}</td>
+        <td>
+          <form action="{{ url_for('case_detail_bp.details_delete', case_id=case.id, detail_id=detail.id) }}"
+                method="POST" style="display:inline;">
+            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this detail?');">
+              Delete
+            </button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p>No companies have been added to this case.</p>
+{% endif %}
+<a href="{{ url_for('case_bp.cases_list') }}" class="btn btn-secondary">Back to Cases</a>
+{% endblock %}
