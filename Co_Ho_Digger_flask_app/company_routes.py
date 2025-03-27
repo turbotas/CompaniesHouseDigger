@@ -1,7 +1,7 @@
 # my_flask_app/company_routes.py
 
-from flask import flash, Blueprint, render_template, request, redirect, url_for
-from .models import db, Company, Relationship, Person, Relationship, RelationshipType, RelationshipAttribute
+from flask import flash, Blueprint, render_template, request, redirect, url_for, session
+from .models import db, Company, Relationship, Person, Relationship, RelationshipType, RelationshipAttribute, CaseDetail
 import requests
 import os
 from datetime import datetime
@@ -12,12 +12,26 @@ company_bp = Blueprint("company_bp", __name__, template_folder="templates")
 
 @company_bp.route("/companies")
 def companies_list():
-    from .models import Company  # ensure Company is imported
+    from .models import Company, CaseDetail  # ensure both are imported
+    from flask import session
 
     sort = request.args.get('sort', 'name')   # default sort by name
     order = request.args.get('order', 'asc')    # default ascending
+    case_filter = request.args.get('case_filter', 'off')  # "on" or "off"
+
+    # Check if a case is currently selected in session.
+    current_case = session.get('current_case_id')
 
     query = Company.query
+
+    # If a case is selected and case_filter is "on", filter companies.
+    if current_case and case_filter == "on":
+        # Join with CaseDetail and filter by the current case.
+        query = query.join(CaseDetail, Company.id == CaseDetail.company_id)\
+                     .filter(CaseDetail.case_id == current_case)\
+                     .distinct()
+
+    # Sorting logic
     if sort == 'name':
         if order == 'asc':
             query = query.order_by(Company.name.asc())
@@ -32,7 +46,8 @@ def companies_list():
         query = query.order_by(Company.name.asc())
 
     companies = query.all()
-    return render_template("companies_list.html", companies=companies, sort=sort, order=order)
+    return render_template("companies_list.html", companies=companies, sort=sort, order=order, case_filter=case_filter)
+
 
 @company_bp.route("/companies/new", methods=["GET", "POST"])
 def companies_new():

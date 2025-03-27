@@ -2,6 +2,17 @@
 {% block content %}
 <h2>UK Companies</h2>
 <a href="{{ url_for('company_bp.companies_new') }}" class="btn btn-primary mb-3">Add New Company</a>
+  {% if current_case %}
+    {% if case_filter == 'on' %}
+      <a href="{{ url_for('company_bp.companies_list', case_filter='off', sort=sort, order=order) }}" class="btn btn-outline-secondary mb-3">
+        Case Filter Off
+      </a>
+    {% else %}
+      <a href="{{ url_for('company_bp.companies_list', case_filter='on', sort=sort, order=order) }}" class="btn btn-outline-secondary mb-3">
+        Case Filter On
+      </a>
+    {% endif %}
+  {% endif %}
 <table class="table table-striped">
   <thead>
     <tr>
