@@ -80,5 +80,21 @@
 
     <!-- Bootstrap JS (optional, if you want dropdowns, modals, etc.) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+      // Auto-close Bootstrap alerts after 10 seconds (10000 milliseconds)
+      window.setTimeout(function() {
+        // Select all alerts
+        var alerts = document.querySelectorAll('.alert');
+        alerts.forEach(function(alert) {
+          // Remove the 'show' class to trigger Bootstrap's fade out.
+          alert.classList.remove('show');
+          // After a short delay (e.g., 500ms for the fade-out animation), remove the element entirely.
+          setTimeout(function() {
+            alert.remove();
+          }, 500);
+        });
+      }, 2500);
+    </script>
   </body>
 </html>
